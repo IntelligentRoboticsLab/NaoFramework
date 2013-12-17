@@ -34,11 +34,16 @@ void printModules(std::vector<std::string>&) {
     }
 }
 
-int main(int argc, const char * argv[] ) {
-    NaoFramework::Console::Console c;
+int main() {
+    NaoFramework::Console::Console c("NaoFramework> ");
+    NaoFramework::Console::Console b("OtherConsole> ");
     c.registerCommand("run",printModules);
     c.registerCommand("add",addModule);
-    c.run();
+    b.registerCommand("whatever",[](std::vector<std::string>&){});
 
+    for ( int i = 0; i < 10; ++i ) {
+        c.readLine();
+        b.readLine();
+    }
     return 0;
 } 
