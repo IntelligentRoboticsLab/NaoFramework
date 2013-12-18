@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: $0 foldername"
+    echo "Usage: $0 unslashed-folder-name"
     exit
 fi
 
