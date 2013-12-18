@@ -17,7 +17,7 @@ class Writer : public NaoFramework::Modules::DynamicModuleInterface {
             if ( comm_->empty() ) {
                 data.push_back(5);
 
-                std::cout << "I'm Faa! I'm setting comm to: " 
+                std::cout << "I'm Writer! I'm setting comm to: " 
                           << data[0] << "\n";
                 *comm_ = data;
             }
