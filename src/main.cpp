@@ -14,13 +14,13 @@ std::vector<naoth::DynamicModule> sharedLibs;
 boost::any comm;
 
 void addModule(std::vector<std::string>& inputs) {
-    if ( inputs.size() < 3 ) {
+    if ( inputs.size() < 2 ) {
         std::cout << "Command: " << inputs[0] << " " << "module_name module_filename\n";
         return;
     }
     try {
-        sharedLibs.emplace_back(inputs[1], inputs[2], &comm);
-        std::cout << "Successfully loaded module: " << inputs[1] << "\n";
+        sharedLibs.emplace_back(inputs[1], &comm);
+        std::cout << "Successfully loaded module: " << sharedLibs.back().getName() << "\n";
     }
     catch ( std::runtime_error & e ) {
         std::cout << "Could not load module: " << e.what() << "\n";

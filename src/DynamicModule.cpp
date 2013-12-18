@@ -14,8 +14,8 @@ namespace NaoFramework {
         #define FACTORY_NAME TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY)
         #define DUMP_NAME    TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP)
 
-        DynamicModule::DynamicModule(std::string moduleName, std::string moduleFilename, boost::any * comm) :
-                                                                DynamicModuleInterface(moduleName, comm),
+        DynamicModule::DynamicModule(std::string moduleFilename, boost::any * comm) :
+                                                                DynamicModuleInterface("temp", comm),
                                                                 dllModule_(nullptr),
                                                                 module_(nullptr),
                                                                 moduleDeleter_(nullptr)
@@ -33,6 +33,7 @@ namespace NaoFramework {
             if ( moduleDeleter_ == nullptr ) throw std::runtime_error(dlerror());
 
             module_ = factory(comm_);
+            name_ = module_->getName();
         }
 
         DynamicModule::DynamicModule(DynamicModule && other) : 
