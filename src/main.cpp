@@ -14,12 +14,12 @@ std::vector<naoth::DynamicModule> sharedLibs;
 boost::any comm;
 
 void addModule(std::vector<std::string>& inputs) {
-    if ( inputs.size() < 2 ) {
-        std::cout << "Command: " << inputs[0] << " " << "module_filename\n";
+    if ( inputs.size() < 3 ) {
+        std::cout << "Command: " << inputs[0] << " " << "module_name module_filename\n";
         return;
     }
     try {
-        sharedLibs.emplace_back(inputs[1], &comm);
+        sharedLibs.emplace_back(inputs[1], inputs[2], &comm);
         std::cout << "Successfully loaded module: " << inputs[1] << "\n";
     }
     catch ( std::runtime_error & e ) {
@@ -39,11 +39,8 @@ int main() {
     NaoFramework::Console::Console b("OtherConsole> ");
     c.registerCommand("run",printModules);
     c.registerCommand("add",addModule);
-    b.registerCommand("whatever",[](std::vector<std::string>&){});
 
-    for ( int i = 0; i < 10; ++i ) {
-        c.readLine();
-        b.readLine();
-    }
+    while ( c.readLine() ) {}
+
     return 0;
 } 

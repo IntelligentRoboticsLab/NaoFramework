@@ -8,7 +8,7 @@ namespace NaoFramework {
     namespace Modules {
         class DynamicModule : public DynamicModuleInterface {
             public:
-                DynamicModule(std::string moduleName, boost::any * comm);
+                DynamicModule(std::string moduleName, std::string moduleFilename, boost::any * comm);
 
                 DynamicModule(DynamicModule&& module);
                 const DynamicModule & operator=(DynamicModule&& module);

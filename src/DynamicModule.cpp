@@ -14,14 +14,14 @@ namespace NaoFramework {
         #define FACTORY_NAME TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY)
         #define DUMP_NAME    TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP)
 
-        DynamicModule::DynamicModule(std::string moduleName, boost::any * comm) :
-                                                                DynamicModuleInterface(comm),
+        DynamicModule::DynamicModule(std::string moduleName, std::string moduleFilename, boost::any * comm) :
+                                                                DynamicModuleInterface(moduleName, comm),
                                                                 dllModule_(nullptr),
                                                                 module_(nullptr),
                                                                 moduleDeleter_(nullptr)
         {
             // Load full library
-            dllModule_ = dlopen(moduleName.c_str(), RTLD_GLOBAL | RTLD_NOW);
+            dllModule_ = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
             if ( dllModule_ == nullptr ) throw std::runtime_error(dlerror());
 
             // This we don't need to save..
@@ -36,7 +36,7 @@ namespace NaoFramework {
         }
 
         DynamicModule::DynamicModule(DynamicModule && other) : 
-                                                        DynamicModuleInterface(other.comm_),
+                                                        DynamicModuleInterface(other.name_, other.comm_),
                                                         dllModule_(other.dllModule_),
                                                         module_(other.module_),
                                                         moduleDeleter_(other.moduleDeleter_)
@@ -56,6 +56,8 @@ namespace NaoFramework {
 
             other.dllModule_        = nullptr;
             other.module_           = nullptr;
+
+            return *this;
         }
 
         DynamicModule::~DynamicModule() {

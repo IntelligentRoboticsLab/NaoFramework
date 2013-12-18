@@ -16,15 +16,19 @@ namespace NaoFramework {
         void * Console::emptyHistory_       = static_cast<void*>(history_get_history_state());
 
         // Here we set default commands, they do nothing since we quit with them
-        // Quitting behaviour is hardcoded in run()
-        Console::Console(std::string greeting) : greeting_(greeting), 
+        // Quitting behaviour is hardcoded in readLine()
+        Console::Console(std::string greeting) : greeting_(greeting),
                                                  commands_({
                                                     {"quit",[](std::vector<std::string>&){}},
                                                     {"exit",[](std::vector<std::string>&){}}}),
                                                  history_(nullptr)
         {
-            // Init readline basics                                          
+            // Init readline basics
             rl_attempted_completion_function = &Console::getCommandCompletions;
+        }
+
+        Console::~Console() {
+            free(history_);
         }
 
         void Console::registerCommand(std::string s, CommandFunction * f) {
@@ -55,10 +59,10 @@ namespace NaoFramework {
 
         bool Console::readLine() {
             reserveConsole();
-            for ( auto & it : commands_ ) 
+            for ( auto & it : commands_ )
                 std::cout << it.first << "\n";
 
-            RegisteredCommands::iterator it; 
+            RegisteredCommands::iterator it;
             char * buffer = readline(greeting_.c_str());
             if ( !buffer ) {
                 std::cout << '\n'; // EOF  doesn't put last endline so we put that.
@@ -73,14 +77,14 @@ namespace NaoFramework {
                         std::istream_iterator<std::string>(),
                         std::back_inserter(inputs));
             }
-            // TODO: Maybe add commands to history only if succeeded? 
+            // TODO: Maybe add commands to history only if succeeded?
             if ( buffer[0] != '\0' )
                 add_history(buffer);
 
             free(buffer);
 
             if ( inputs.size() == 0 ) return true;
-            if ( inputs[0] == "quit" || inputs[0] == "exit" ) return false; 
+            if ( inputs[0] == "quit" || inputs[0] == "exit" ) return false;
 
             if ( ( it = commands_.find(inputs[0]) ) != end(commands_) ) {
                 (it->second)(inputs);
@@ -106,7 +110,7 @@ namespace NaoFramework {
 
             if ( state == 0 ) it = begin(commands_);
 
-            while ( it != end(commands_ ) ) { 
+            while ( it != end(commands_ ) ) {
                 auto & command = it->first;
                 ++it;
                 if ( command.find(text) != std::string::npos ) {

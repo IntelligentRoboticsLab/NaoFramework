@@ -7,7 +7,7 @@ namespace NaoFramework {
     namespace Modules {
         class DynamicModuleInterface : public ModuleInterface {
             public:
-                DynamicModuleInterface(boost::any * comm) : ModuleInterface(comm) {}
+                DynamicModuleInterface(std::string moduleName, boost::any * comm) : ModuleInterface(moduleName, comm) {}
         };
 
         using dynamicModuleFactory  = DynamicModuleInterface*    (boost::any * comm);

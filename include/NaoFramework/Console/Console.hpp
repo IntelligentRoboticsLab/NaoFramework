@@ -13,6 +13,7 @@ namespace NaoFramework {
                 using CommandFunction = void(std::vector<std::string> &);
 
                 Console(std::string greeting);
+                ~Console();
 
                 void registerCommand(std::string s, CommandFunction * f);
                 bool readLine();
