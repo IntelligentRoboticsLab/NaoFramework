@@ -7,6 +7,8 @@ ADD_DEFINITIONS(
     # Other flags
 )
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${NaoFramework_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${NaoFramework_BINARY_DIR})
 # Output executable in main directory
