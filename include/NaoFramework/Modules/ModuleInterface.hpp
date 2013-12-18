@@ -17,13 +17,24 @@ namespace NaoFramework {
         class ModuleInterface {
             public:
                 ModuleInterface(std::string moduleName, boost::any * comm);
+                // No module copying
+                ModuleInterface(const ModuleInterface&) = delete;
+                const ModuleInterface & operator=(const ModuleInterface&) = delete;
+                // Yay module moving
+                ModuleInterface(ModuleInterface &&);
+                const ModuleInterface & operator=(ModuleInterface &&);
+
                 virtual ~ModuleInterface();
                 virtual void print() = 0;
                 
                 std::string getName() const;
+
+                void log(const std::string &);
+
             protected:
                 std::string name_;
                 boost::any * comm_;
+
             private:
                 using TextSink = boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>;
                 boost::shared_ptr<TextSink> sink_;

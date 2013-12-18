@@ -13,31 +13,41 @@ namespace NaoFramework {
         #define TO_STRING(X) TO_STRING_2(X)
         #define FACTORY_NAME TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY)
         #define DUMP_NAME    TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP)
-
-        DynamicModule::DynamicModule(std::string moduleFilename, boost::any * comm) :
-                                                                DynamicModuleInterface("temp", comm),
-                                                                dllModule_(nullptr),
-                                                                module_(nullptr),
-                                                                moduleDeleter_(nullptr)
+        // We need a separate function because of names passed to ModuleInterface:
+        // we need to know the name of the module we are loading beforehand, but
+        // we can't assume it from the library name.
+        DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm)
         {
             // Load full library
-            dllModule_ = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
-            if ( dllModule_ == nullptr ) throw std::runtime_error(dlerror());
+            void * dllModule = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
+            if ( dllModule == nullptr ) throw std::runtime_error(dlerror());
 
             // This we don't need to save..
-            dynamicModuleFactory* factory = (dynamicModuleFactory*) dlsym(dllModule_, FACTORY_NAME);
+            dynamicModuleFactory* factory = (dynamicModuleFactory*) dlsym(dllModule, FACTORY_NAME);
             if ( factory == nullptr ) throw std::runtime_error(dlerror());
             // We need to obtain this function now because we can't simply
             // create an instance we might not be able to delete!
-            moduleDeleter_ = (dynamicModuleDump*) dlsym(dllModule_, DUMP_NAME );
-            if ( moduleDeleter_ == nullptr ) throw std::runtime_error(dlerror());
+            dynamicModuleDump* moduleDeleter = (dynamicModuleDump*) dlsym(dllModule, DUMP_NAME );
+            if ( moduleDeleter == nullptr ) throw std::runtime_error(dlerror());
 
-            module_ = factory(comm_);
-            name_ = module_->getName();
+            DynamicModuleInterface* module = factory(comm);
+
+            return DynamicModule("Dynamic" + module->getName(), comm, dllModule, module, moduleDeleter);
         }
 
+        #undef FACTORY_NAME 
+        #undef DUMP_NAME    
+        #undef TO_STRING
+
+        DynamicModule::DynamicModule(std::string name, boost::any * comm, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter) :
+                                                                DynamicModuleInterface(name, comm),
+                                                                dllModule_(dllModule),
+                                                                module_(module),
+                                                                moduleDeleter_(deleter) {}
+
+
         DynamicModule::DynamicModule(DynamicModule && other) : 
-                                                        DynamicModuleInterface(other.name_, other.comm_),
+                                                        DynamicModuleInterface(std::move(other)),
                                                         dllModule_(other.dllModule_),
                                                         module_(other.module_),
                                                         moduleDeleter_(other.moduleDeleter_)
@@ -62,16 +72,14 @@ namespace NaoFramework {
         }
 
         DynamicModule::~DynamicModule() {
+            std::cout << name_ << " ## Dropping dll..\n";
             if (module_)    moduleDeleter_(&module_);
             if (dllModule_) dlclose(dllModule_);
+            std::cout << name_ << " ## DLL Done..\n";
         }
 
         void DynamicModule::print() {
             module_->print();
         }
-
-        #undef FACTORY_NAME 
-        #undef DUMP_NAME    
-        #undef TO_STRING
     }
 }

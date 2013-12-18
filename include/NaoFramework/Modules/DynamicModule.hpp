@@ -6,15 +6,15 @@
 
 namespace NaoFramework {
     namespace Modules {
+        class DynamicModule;
+
+        DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm);
+
         class DynamicModule : public DynamicModuleInterface {
             public:
-                DynamicModule(std::string moduleFilename, boost::any * comm);
-
+                // We refine ModuleInterface move constructor
                 DynamicModule(DynamicModule&& module);
                 const DynamicModule & operator=(DynamicModule&& module);
-                // Can't copy this, sorry!
-                DynamicModule(const DynamicModule& module) = delete;
-                const DynamicModule & operator=(const DynamicModule&) = delete;
 
                 virtual ~DynamicModule();
                 
@@ -22,8 +22,11 @@ namespace NaoFramework {
                 virtual void print();
             private:
                 void * dllModule_;
-                DynamicModuleInterface * module_;
-                dynamicModuleDump * moduleDeleter_;
+                DynamicModuleInterface * module_;   // This is a class
+                dynamicModuleDump * moduleDeleter_; // This is a function
+
+                DynamicModule(std::string name, boost::any * comm, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter);
+                friend DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm);
         };
     } // Modules
 } //NaoFramework

@@ -29,6 +29,7 @@ class Writer : public NaoFramework::Modules::DynamicModuleInterface {
                           << data[0] << "\n";
                 *comm_ = data;
             }
+            log("I did something!");
         }
 };
 

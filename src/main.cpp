@@ -19,7 +19,7 @@ void addModule(std::vector<std::string>& inputs) {
         return;
     }
     try {
-        sharedLibs.emplace_back(inputs[1], &comm);
+        sharedLibs.emplace_back(NaoFramework::Modules::makeDynamicModule(inputs[1], &comm));
         std::cout << "Successfully loaded module: " << sharedLibs.back().getName() << "\n";
     }
     catch ( std::runtime_error & e ) {
