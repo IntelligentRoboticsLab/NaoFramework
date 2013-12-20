@@ -1,6 +1,7 @@
 #include <NaoFramework/Console/Console.hpp>
 
 #include <iostream>
+#include <fstream>
 #include <functional>
 #include <algorithm>
 #include <iterator>
@@ -18,21 +19,37 @@ namespace NaoFramework {
         // Here we set default commands, they do nothing since we quit with them
         // Quitting behaviour is hardcoded in readLine()
         Console::Console(std::string greeting) : greeting_(greeting),
-                                                 commands_({
-                                                    {"quit",[](std::vector<std::string>&){}},
-                                                    {"exit",[](std::vector<std::string>&){}}}),
+                                                 commands_({   {"quit",{}}, {"exit",{}}   }),
                                                  history_(nullptr)
         {
             // Init readline basics
             rl_attempted_completion_function = &Console::getCommandCompletions;
+            // We write these here because it's more manageable
+            commands_["help"] = [this](const std::vector<std::string>&){
+                                       auto commands = getRegisteredCommands();
+                                       std::cout << "Available commands are:\n";
+                                       for ( auto & command : commands ) std::cout << "\t" << command << "\n";
+                                       return 0;
+                                };
+            commands_["run"] =  [this](const std::vector<std::string>& input) {
+                                       if ( input.size() < 2 ) return 1;
+                                       return executeFile(input[1]);
+                                };
         }
 
         Console::~Console() {
             free(history_);
         }
 
-        void Console::registerCommand(std::string s, CommandFunction f) {
+        void Console::registerCommand(const std::string & s, CommandFunction f) {
             commands_[s] = f;
+        }
+
+        std::vector<std::string> Console::getRegisteredCommands() const {
+            std::vector<std::string> allCommands;
+            for ( auto & pair : commands_ ) allCommands.push_back(pair.first);
+
+            return allCommands;
         }
 
         void Console::saveState() {
@@ -57,42 +74,61 @@ namespace NaoFramework {
             currentConsole_ = this;
         }
 
-        bool Console::readLine() {
-            reserveConsole();
-            for ( auto & it : commands_ )
-                std::cout << it.first << "\n";
-
-            RegisteredCommands::iterator it;
-            char * buffer = readline(greeting_.c_str());
-            if ( !buffer ) {
-                std::cout << '\n'; // EOF  doesn't put last endline so we put that.
-                return false;
-            }
-
+        int Console::executeCommand(const std::string & command) {
             // Convert input to C++ <3
             std::vector<std::string> inputs;
             {
-                std::istringstream iss(buffer);
+                std::istringstream iss(command);
                 std::copy(std::istream_iterator<std::string>(iss),
                         std::istream_iterator<std::string>(),
                         std::back_inserter(inputs));
             }
+
+            if ( inputs.size() == 0 ) return true;
+            if ( inputs[0] == "quit" || inputs[0] == "exit" ) return ReturnCode::Quit;
+
+            RegisteredCommands::iterator it;
+            if ( ( it = commands_.find(inputs[0]) ) != end(commands_) ) {
+                return static_cast<int>((it->second)(inputs));
+            }
+
+            std::cout << "Command '" << inputs[0] << "' not found.\n";
+            return ReturnCode::Error;
+        }
+
+        int Console::executeFile(const std::string & filename) {
+            std::ifstream input(filename);
+            std::string command;
+            int counter = 0, result;
+
+            while ( std::getline(input, command)  ) {
+                if ( command[0] == '#' ) continue; // Ignore comments
+                std::cout << "[" << counter << "] " << command << '\n';
+                if ( (result = executeCommand(command)) ) return result;
+                ++counter; std::cout << '\n';
+            }
+
+            // If we arrived successfully at the end, all is ok
+            return ReturnCode::Ok;
+        }
+
+        int Console::readLine() {
+            reserveConsole();
+
+            char * buffer = readline(greeting_.c_str());
+            if ( !buffer ) {
+                std::cout << '\n'; // EOF doesn't put last endline so we put that so that it looks uniform.
+                return ReturnCode::Quit;
+            }
+
             // TODO: Maybe add commands to history only if succeeded?
             if ( buffer[0] != '\0' )
                 add_history(buffer);
 
+            std::string line(buffer);
             free(buffer);
 
-            if ( inputs.size() == 0 ) return true;
-            if ( inputs[0] == "quit" || inputs[0] == "exit" ) return false;
-
-            if ( ( it = commands_.find(inputs[0]) ) != end(commands_) ) {
-                (it->second)(inputs);
-            }
-            else {
-                std::cout << "Command '" << inputs[0] << "' not found.\n";
-            }
-            return true;
+            return executeCommand(line);
         }
 
         char ** Console::getCommandCompletions(const char * text, int start, int) {
