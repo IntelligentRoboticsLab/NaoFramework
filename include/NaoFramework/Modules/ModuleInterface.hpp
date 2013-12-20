@@ -5,12 +5,7 @@
 // We don't forward declare these mostly because then we can force
 // external modules to have them and check what they are doing.
 #include <boost/any.hpp>
-// Normally we would use std::shared_ptr
-// But this library does not accept it
-#include <boost/smart_ptr/shared_ptr.hpp>
-#include <boost/smart_ptr/make_shared_object.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <NaoFramework/Log/Frontend.hpp>
 
 namespace NaoFramework {
     namespace Modules {
@@ -26,18 +21,14 @@ namespace NaoFramework {
 
                 virtual ~ModuleInterface();
                 virtual void print() = 0;
-                
+
                 std::string getName() const;
 
-                void log(const std::string &);
+                void log(const std::string &, Log::MessagePriority p = Log::Info);
 
             protected:
                 std::string name_;
                 boost::any * comm_;
-
-            private:
-                using TextSink = boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>;
-                boost::shared_ptr<TextSink> sink_;
         };
     } // Modules
 } //NaoFramework

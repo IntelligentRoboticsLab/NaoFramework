@@ -10,7 +10,7 @@ class Writer : public NaoFramework::Modules::DynamicModuleInterface {
 
         Writer(boost::any * comm) : DynamicModuleInterface("Writer",comm) {}
 
-        virtual ~Writer() { std::cout << "Writer died\n"; }
+        virtual ~Writer() { std::cout << "Writer destructor called.\n"; }
 
         virtual void print() { 
             MyData data;

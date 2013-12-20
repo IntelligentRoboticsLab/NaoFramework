@@ -72,10 +72,11 @@ namespace NaoFramework {
         }
 
         DynamicModule::~DynamicModule() {
-            std::cout << name_ << " ## Dropping dll..\n";
+            log("Deleting module..");
             if (module_)    moduleDeleter_(&module_);
+            log("Dropping dll..");
             if (dllModule_) dlclose(dllModule_);
-            std::cout << name_ << " ## DLL Done..\n";
+            log("Resources cleaned.");
         }
 
         void DynamicModule::print() {

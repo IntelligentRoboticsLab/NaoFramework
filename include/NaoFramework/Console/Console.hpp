@@ -10,16 +10,16 @@ namespace NaoFramework {
     namespace Console {
         class Console {
             public:
-                using CommandFunction = void(std::vector<std::string> &);
+                using CommandFunction = std::function<void(std::vector<std::string> &)>;
 
                 Console(std::string greeting);
                 ~Console();
 
-                void registerCommand(std::string s, CommandFunction * f);
+                void registerCommand(std::string s, CommandFunction f);
                 bool readLine();
 
             private:
-                using RegisteredCommands = std::unordered_map<std::string,CommandFunction*>;
+                using RegisteredCommands = std::unordered_map<std::string,CommandFunction>;
 
                 std::string greeting_;
                 RegisteredCommands commands_;

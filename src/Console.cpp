@@ -31,7 +31,7 @@ namespace NaoFramework {
             free(history_);
         }
 
-        void Console::registerCommand(std::string s, CommandFunction * f) {
+        void Console::registerCommand(std::string s, CommandFunction f) {
             commands_[s] = f;
         }
 

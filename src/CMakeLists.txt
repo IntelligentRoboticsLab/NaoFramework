@@ -8,7 +8,7 @@ include_directories(${Boost_INCLUDE_DIR})
 
 # Required by Boost::Log to link with shared libraries
 add_definitions(-DBOOST_ALL_DYN_LINK)
-add_library(NaoFramework DynamicModule.cpp Console.cpp ModuleInterface.cpp)
+add_library(NaoFramework DynamicModule.cpp Console.cpp ModuleInterface.cpp LogFrontend.cpp)
 # Uppercase conventions here are different unfortunately..
 target_link_libraries(NaoFramework dl ${READLINE_LIBRARY} ${Boost_LOG_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} pthread)
 
