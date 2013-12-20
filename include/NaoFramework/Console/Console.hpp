@@ -10,14 +10,24 @@ namespace NaoFramework {
     namespace Console {
         class Console {
             public:
-                using CommandFunction = std::function<void(std::vector<std::string> &)>;
+                using CommandFunction = std::function<unsigned(std::vector<std::string> &)>;
+
+                enum ReturnCode {
+                    Quit = -1,
+                    Ok = 0,
+                    Error = 1 // Or greater!
+                };
 
                 Console(std::string greeting);
                 ~Console();
 
-                void registerCommand(std::string s, CommandFunction f);
-                bool readLine();
+                void registerCommand(const std::string & s, CommandFunction f);
+                std::vector<std::string> getRegisteredCommands() const;
 
+                int executeCommand(const std::string & command);
+                int executeFile(const std::string & filename);
+
+                int readLine();
             private:
                 using RegisteredCommands = std::unordered_map<std::string,CommandFunction>;
 
@@ -34,7 +44,7 @@ namespace NaoFramework {
                 // GNU newline interface to our commands.
                 using commandCompleterFunction = char**(const char * text, int start, int end);
                 using commandIteratorFunction = char*(const char * text, int state);
-                
+
                 static commandCompleterFunction getCommandCompletions;
                 static commandIteratorFunction commandIterator;
         };
