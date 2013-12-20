@@ -21,7 +21,7 @@ struct FrameworkTest {
     void addModule(std::vector<std::string>& inputs) {
         sharedLibs.reserve(5);
         if ( inputs.size() < 2 ) {
-            std::cout << "Command: " << inputs[0] << " " << "module_name module_filename\n";
+            std::cout << "Command: " << inputs[0] << " module_filename\n";
             return;
         }
         try {
