@@ -2,10 +2,17 @@ cmake_minimum_required (VERSION 2.6)
 
 project(NaoFramework)
 
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, defaulting to Debug. To change this call cmake with option -DCMAKE_BUILD_TYPE=[...]")
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 ADD_DEFINITIONS(
     -std=c++11 # Or -std=c++0x
     # Other flags
 )
+# Flags to do in debug build
+set(CMAKE_CXX_FLAGS_DEBUG "-DNAO_DEBUG")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
