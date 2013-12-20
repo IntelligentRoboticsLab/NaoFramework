@@ -65,7 +65,7 @@ namespace NaoFramework {
                 sink->locked_backend()->add_stream(
                         boost::make_shared< std::ofstream >("log/"+client));
                 // Flush continuously, only in debug mode
-                #if 1
+                #if NAO_DEBUG
                 sink->locked_backend()->auto_flush(true);
                 #endif
                 // Only get messages from caller 
@@ -82,6 +82,9 @@ namespace NaoFramework {
                 logging::core::get()->add_sink(sink);
 
                 log("Log", "Set sink for client: " + client );
+                #if NAO_DEBUG
+                log("Log", "DEBUG: Auto Flushing is true");
+                #endif
                 availableSinks[client] = sink;
                 result = true;
             }
