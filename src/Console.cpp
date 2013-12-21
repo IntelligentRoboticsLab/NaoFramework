@@ -32,7 +32,7 @@ namespace NaoFramework {
                                        return 0;
                                 };
             commands_["run"] =  [this](const std::vector<std::string>& input) {
-                                       if ( input.size() < 2 ) return 1;
+                                       if ( input.size() < 2 ) { std::cout << "Usage: " << input[0] << " script_filename\n"; return 1; }
                                        return executeFile(input[1]);
                                 };
         }
