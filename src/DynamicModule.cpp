@@ -16,7 +16,7 @@ namespace NaoFramework {
         // We need a separate function because of names passed to ModuleInterface:
         // we need to know the name of the module we are loading beforehand, but
         // we can't assume it from the library name.
-        DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm)
+        DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm)
         {
             // Load full library
             void * dllModule = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
@@ -32,15 +32,15 @@ namespace NaoFramework {
 
             DynamicModuleInterface* module = factory(comm);
 
-            return DynamicModule("Dynamic" + module->getName(), comm, dllModule, module, moduleDeleter);
+            return DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter);
         }
 
         #undef FACTORY_NAME 
         #undef DUMP_NAME    
         #undef TO_STRING
 
-        DynamicModule::DynamicModule(std::string name, boost::any * comm, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter) :
-                                                                DynamicModuleInterface(name, comm),
+        DynamicModule::DynamicModule(std::string name, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter) :
+                                                                DynamicModuleInterface(name),
                                                                 dllModule_(dllModule),
                                                                 module_(module),
                                                                 moduleDeleter_(deleter) {}
@@ -63,7 +63,6 @@ namespace NaoFramework {
             dllModule_              = other.dllModule_;
             module_                 = other.module_;
             moduleDeleter_          = other.moduleDeleter_;
-            comm_                   = other.comm_;
 
             other.dllModule_        = nullptr;
             other.module_           = nullptr;
@@ -79,8 +78,8 @@ namespace NaoFramework {
             log("Resources cleaned.");
         }
 
-        void DynamicModule::print() {
-            module_->print();
+        void DynamicModule::execute() {
+            module_->execute();
         }
     }
 }

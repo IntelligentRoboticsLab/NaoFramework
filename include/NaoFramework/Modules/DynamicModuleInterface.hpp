@@ -1,6 +1,8 @@
 #ifndef NAO_FRAMEWORK_MODULES_DYNAMIC_MODULE_INTERFACE_HEADER_FILE
 #define NAO_FRAMEWORK_MODULES_DYNAMIC_MODULE_INTERFACE_HEADER_FILE
 
+#include <NaoFramework/Comm/LocalBlackboardAdapter.hpp>
+
 #include <NaoFramework/Modules/ModuleInterface.hpp>
 
 namespace NaoFramework {
@@ -10,7 +12,7 @@ namespace NaoFramework {
                 using ModuleInterface::ModuleInterface;
         };
 
-        using dynamicModuleFactory  = DynamicModuleInterface*    (boost::any * comm);
+        using dynamicModuleFactory  = DynamicModuleInterface*    (Comm::LocalBlackboardAdapter & comm);
         using dynamicModuleDump     = void              (DynamicModuleInterface**);
 
     } // Modules
@@ -25,8 +27,9 @@ namespace NaoFramework {
 extern "C" {                                                                                    \
     NaoFramework::Modules::dynamicModuleFactory NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY;           \
     NaoFramework::Modules::dynamicModuleDump    NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP;              \
+                                                                                                \
     NaoFramework::Modules::DynamicModuleInterface* NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY         \
-    ( boost::any * comm ) {                                                                     \
+    ( NaoFramework::Comm::LocalBlackboardAdapter & comm ) {                                     \
         return new X(comm);                                                                     \
     }                                                                                           \
     void NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP(NaoFramework::Modules::DynamicModuleInterface**x) {  \

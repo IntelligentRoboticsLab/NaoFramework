@@ -5,17 +5,29 @@
 
 class Reader : public NaoFramework::Modules::DynamicModuleInterface {
     public:
-        using SomeData = std::vector<int>;
-
-        Reader(boost::any * comm) : DynamicModuleInterface("Reader",comm) {}
-
-        virtual ~Reader() { std::cout << "Reader out\n"; }
-
-        virtual void print() { 
-            // This will crash if comm is not set or data is weird!
-            std::cout << "I'm Reader! From COM I read: " 
-                      << boost::any_cast<SomeData>(*comm_).at(0) << "\n";
+        Reader(NaoFramework::Comm::LocalBlackboardAdapter & comm) : DynamicModuleInterface("Reader") {
+            using namespace NaoFramework::Comm;
+            RegistrationError e = RegistrationError::None;
+            f_ = comm.registerRequire<int>("test", &e);
+            if ( e != RegistrationError::None ) {
+                log("Mistake..");
+                throw e;
+            }
+            else {
+                log("OK!");
+            }
         }
+
+        virtual ~Reader() { 
+            log("Reader out");
+        }
+
+        virtual void execute() { 
+            int data = f_();
+            std::cout << "I'm Reader! From COM I read: "  << data << "\n";
+        }
+    private:
+        NaoFramework::Comm::RequireFunction<int> f_;
 };
 
 MODULE_EXPORT(Reader)

@@ -1,17 +1,15 @@
 #ifndef NAO_FRAMEWORK_MODULES_MODULE_INTERFACE_HEADER_FILE
 #define NAO_FRAMEWORK_MODULES_MODULE_INTERFACE_HEADER_FILE
 
-#include <string>
-// We don't forward declare these mostly because then we can force
-// external modules to have them and check what they are doing.
-#include <boost/any.hpp>
 #include <NaoFramework/Log/Frontend.hpp>
+
+#include <string>
 
 namespace NaoFramework {
     namespace Modules {
         class ModuleInterface {
             public:
-                ModuleInterface(std::string moduleName, boost::any * comm);
+                ModuleInterface(std::string moduleName);
                 // No module copying
                 ModuleInterface(const ModuleInterface&) = delete;
                 const ModuleInterface & operator=(const ModuleInterface&) = delete;
@@ -20,7 +18,7 @@ namespace NaoFramework {
                 const ModuleInterface & operator=(ModuleInterface &&);
 
                 virtual ~ModuleInterface();
-                virtual void print() = 0;
+                virtual void execute() = 0;
 
                 std::string getName() const;
 
@@ -28,7 +26,6 @@ namespace NaoFramework {
 
             protected:
                 std::string name_;
-                boost::any * comm_;
         };
     } // Modules
 } //NaoFramework
