@@ -10,6 +10,7 @@
 // But this library does not accept it
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/make_shared_object.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 
@@ -42,7 +43,19 @@ namespace NaoFramework {
 
         static std::mutex availableSinksMutex;
 
-        void init() {
+        static std::string logFolder;
+
+        void init(const std::string & logFolder) {
+            try {
+                boost::filesystem::create_directory(logFolder);
+            }
+            catch (const boost::filesystem::filesystem_error & e) {
+                if (!boost::filesystem::is_directory(logFolder)) {
+                    throw e;
+                }
+            }
+            NaoFramework::Log::logFolder = logFolder;
+
             boost::shared_ptr< logging::core > core = logging::core::get();
 
             core->add_global_attribute("TimeStamp", attrs::local_clock());
@@ -63,7 +76,7 @@ namespace NaoFramework {
 
                 // Add a stream to write log to
                 sink->locked_backend()->add_stream(
-                        boost::make_shared< std::ofstream >("log/"+client));
+                        boost::make_shared< std::ofstream >(logFolder+"/"+client));
                 // Flush continuously, only in debug mode
                 #if NAO_DEBUG
                 sink->locked_backend()->auto_flush(true);
