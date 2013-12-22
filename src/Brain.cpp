@@ -1,4 +1,4 @@
-#include <NaoFramework/Modules/Brain.hpp>
+#include <NaoFramework/Core/Brain.hpp>
 #include <NaoFramework/Modules/DynamicModule.hpp>
 //#include <NaoFramework/Console/Console.hpp>
 //#include <NaoFramework/Log/Frontend.hpp>
@@ -12,11 +12,10 @@
 //#include <iostream>
 
 using std::cout;
-namespace naoth = NaoFramework::Modules;
 
 // TODO: Make this into a class and its own file; put it in the include/s
 namespace NaoFramework {
-    namespace Modules {
+    namespace Core {
         Brain::Brain() : b("BBoard") {}
 
         unsigned Brain::addModule(std::vector<std::string>& inputs) {

@@ -1,4 +1,4 @@
-#include <NaoFramework/Modules/Brain.hpp>
+#include <NaoFramework/Core/Brain.hpp>
 #include <NaoFramework/Modules/DynamicModule.hpp>
 #include <NaoFramework/Console/Console.hpp>
 #include <NaoFramework/Log/Frontend.hpp>
@@ -19,7 +19,7 @@ int main(int argc, const char * argv[]) {
 
     namespace pl = std::placeholders;
     using namespace NaoFramework::Console;
-    using namespace NaoFramework::Modules;
+    using namespace NaoFramework::Core;
 
     Console c("NaoFramework> ");
     Console b("OtherConsole> ");

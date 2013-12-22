@@ -1,5 +1,5 @@
-#ifndef NAO_FRAMEWORK_MODULES_BRAIN_WAVE_HEADER_FILE
-#define NAO_FRAMEWORK_MODULES_BRAIN_WAVE_HEADER_FILE
+#ifndef NAO_FRAMEWORK_CORE_BRAIN_WAVE_HEADER_FILE
+#define NAO_FRAMEWORK_CORE_BRAIN_WAVE_HEADER_FILE
 
 #include <string>
 #include <vector>
@@ -8,7 +8,7 @@
 #include <thread>
 
 namespace NaoFramework {
-    namespace Modules {
+    namespace Core {
         class ModuleInterface;
         class BrainWave {
             public:
@@ -31,8 +31,8 @@ namespace NaoFramework {
                 void launchWave();
                 std::thread wave_;
         };
-    }
-}
+    } // Core
+} //NaoFramework
 #endif
 
 /*

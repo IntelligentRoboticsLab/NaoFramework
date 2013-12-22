@@ -1,5 +1,5 @@
-#ifndef NAO_FRAMEWORK_MODULES_WAVE_CONDUCTOR_HEADER_FILE
-#define NAO_FRAMEWORK_MODULES_WAVE_CONDUCTOR_HEADER_FILE
+#ifndef NAO_FRAMEWORK_CORE_BRAIN_HEADER_FILE
+#define NAO_FRAMEWORK_CORE_BRAIN_HEADER_FILE
 
 #include <NaoFramework/Modules/DynamicModule.hpp>
 #include <NaoFramework/Comm/Blackboard.hpp>
@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace NaoFramework {
-    namespace Modules {
+    namespace Core {
         class Brain {
             public:
                 Brain();
@@ -21,7 +21,7 @@ namespace NaoFramework {
                 std::vector<DynamicModule> sharedLibs;
                 NaoFramework::Comm::Blackboard b;
         };
-    }
-}
+    } // Core
+} //NaoFramework
 
 #endif
