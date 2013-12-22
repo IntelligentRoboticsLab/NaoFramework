@@ -1,9 +1,9 @@
-#include <NaoFramework/Modules/BrainWave.hpp>
+#include <NaoFramework/Core/BrainWave.hpp>
 
 #include <NaoFramework/Modules/ModuleInterface.hpp>
 
 namespace NaoFramework {
-    namespace Modules {
+    namespace Core {
         BrainWave::BrainWave(std::string name) : name_(name) {}
 
         BrainWave::~BrainWave() {
