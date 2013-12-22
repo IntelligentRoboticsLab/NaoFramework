@@ -18,7 +18,7 @@ namespace NaoFramework {
                 unsigned addModule(std::vector<std::string>& inputs);
                 unsigned printModules(std::vector<std::string>&);
             private:
-                std::vector<DynamicModule> sharedLibs;
+                std::vector<NaoFramework::Modules::DynamicModule> sharedLibs;
                 NaoFramework::Comm::Blackboard b;
         };
     } // Core
