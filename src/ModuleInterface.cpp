@@ -2,18 +2,16 @@
 
 namespace NaoFramework {
     namespace Modules {
-        ModuleInterface::ModuleInterface(std::string moduleName, boost::any * comm) : name_(moduleName), comm_(comm) {
+        ModuleInterface::ModuleInterface(std::string moduleName) : name_(moduleName) {
             Log::makeSink(name_);
         }
 
-        ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(other.name_), comm_(other.comm_) {
+        ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(other.name_) {
             other.name_ = "";
         }
 
         const ModuleInterface & ModuleInterface::operator=(ModuleInterface&& other) {
             name_ = other.name_;
-            comm_ = other.comm_;
-
             other.name_ = "";
 
             return *this;

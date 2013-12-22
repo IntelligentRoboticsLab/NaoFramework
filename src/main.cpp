@@ -1,7 +1,9 @@
 #include <NaoFramework/Modules/DynamicModule.hpp>
 #include <NaoFramework/Console/Console.hpp>
 #include <NaoFramework/Log/Frontend.hpp>
-#include <boost/any.hpp>
+#include <NaoFramework/Comm/Blackboard.hpp>
+#include <NaoFramework/Comm/ExternalBlackboardAdapter.hpp>
+#include <NaoFramework/Comm/LocalBlackboardAdapter.hpp>
 
 #include <map>
 #include <vector>
@@ -16,18 +18,21 @@ struct FrameworkTest {
     //FrameworkTest(const FrameworkTest &) = delete;
     //FrameworkTest & operator=(const FrameworkTest &) = delete;
     std::vector<naoth::DynamicModule> sharedLibs;
-    boost::any comm;
+    NaoFramework::Comm::Blackboard b;
+
+    FrameworkTest() : b("BBoard") {}
 
     unsigned addModule(std::vector<std::string>& inputs) {
         sharedLibs.reserve(5);
         if ( inputs.size() < 2 ) {
-            std::cout << "Command: " << inputs[0] << " module_filename\n";
+            std::cout << "Usage: " << inputs[0] << " module_filename\n";
             return 1;
         }
 
         unsigned loaded = 1; // 1 = Error!
         try {
-            sharedLibs.emplace_back(NaoFramework::Modules::makeDynamicModule(inputs[1], &comm));
+            auto adapter = NaoFramework::Comm::LocalBlackboardAdapter(b);
+            sharedLibs.emplace_back(NaoFramework::Modules::makeDynamicModule(inputs[1], adapter));
             std::cout << "Successfully loaded module: " << sharedLibs.back().getName() << "\n";
             loaded = 0;
         }
@@ -38,8 +43,12 @@ struct FrameworkTest {
     }
 
     unsigned printModules(std::vector<std::string>&) {
+        if ( ! b.validateGlobals() ) {
+            std::cout << "Dependencies are not met!\n";
+            return 1;
+        }
         for ( auto & module : sharedLibs ) {
-            module.print();
+            module.execute();
         }
         return 0;
     }
@@ -49,15 +58,15 @@ int main(int argc, const char * argv[]) {
     // Must call this!
     NaoFramework::Log::init();
 
-    using namespace std::placeholders;
+    namespace pl = std::placeholders;
     using namespace NaoFramework::Console;
 
     Console c("NaoFramework> ");
     Console b("OtherConsole> ");
 
     FrameworkTest f;
-    c.registerCommand("test",std::bind(&FrameworkTest::printModules, &f, _1));
-    c.registerCommand("add", std::bind(&FrameworkTest::addModule,    &f, _1));
+    c.registerCommand("test",std::bind(&FrameworkTest::printModules, &f, pl::_1));
+    c.registerCommand("add", std::bind(&FrameworkTest::addModule,    &f, pl::_1));
 
     cout << "\nWelcome to the NaoFramework command line interface!\n";
     // Default running script

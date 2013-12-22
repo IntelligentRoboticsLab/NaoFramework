@@ -5,32 +5,33 @@
 
 class Writer : public NaoFramework::Modules::DynamicModuleInterface {
     public:
-        // This can be anything!
-        using MyData = std::vector<int>;
-
-        Writer(boost::any * comm) : DynamicModuleInterface("Writer",comm) {}
-
-        virtual ~Writer() { std::cout << "Writer destructor called.\n"; }
-
-        virtual void print() { 
-            MyData data;
-            if ( comm_->empty() ) {
-                data.push_back(5);
-
-                std::cout << "I'm Writer! I'm setting comm to: " 
-                          << data[0] << "\n";
-                *comm_ = data;
+        Writer(NaoFramework::Comm::LocalBlackboardAdapter & comm) : DynamicModuleInterface("Writer") {
+            using namespace NaoFramework::Comm;
+            RegistrationError e = RegistrationError::None;
+            f_ = comm.registerProvide<int>("test", &e);
+            if ( e != RegistrationError::None ) {
+                log("Mistake..");
+                throw e;
             }
             else {
-                auto data = boost::any_cast<MyData>(*comm_);
-
-                ++(data[0]);
-                std::cout << "I'm Writer! I'm upping comm to: " 
-                          << data[0] << "\n";
-                *comm_ = data;
+                log("OK!");
             }
+        }
+
+        virtual ~Writer() { 
+            log("Writer out!");
+        }
+
+        virtual void execute() { 
+            int testData = 5;
+            
+            std::cout << "I'm Writer! I'm setting comm to: " << testData << '\n';
+            f_(testData);
+
             log("I did something!");
         }
+    private:
+        NaoFramework::Comm::ProvideFunction<int> f_;
 };
 
 MODULE_EXPORT(Writer)

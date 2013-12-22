@@ -8,7 +8,7 @@ namespace NaoFramework {
     namespace Modules {
         class DynamicModule;
 
-        DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm);
+        DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
 
         class DynamicModule : public DynamicModuleInterface {
             public:
@@ -19,14 +19,14 @@ namespace NaoFramework {
                 virtual ~DynamicModule();
                 
                 // Actual module things
-                virtual void print();
+                virtual void execute();
             private:
                 void * dllModule_;
                 DynamicModuleInterface * module_;   // This is a class
                 dynamicModuleDump * moduleDeleter_; // This is a function
 
-                DynamicModule(std::string name, boost::any * comm, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter);
-                friend DynamicModule makeDynamicModule(std::string moduleFilename, boost::any * comm);
+                DynamicModule(std::string name, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter);
+                friend DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
         };
     } // Modules
 } //NaoFramework
