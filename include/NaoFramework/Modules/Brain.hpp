@@ -11,10 +11,9 @@ namespace NaoFramework {
     namespace Modules {
         class Brain {
             public:
-                //Brain() {}
-                //Brain(const Brain &) = delete;
-                //Brain & operator=(const Brain &) = delete;
                 Brain();
+                Brain(const Brain &) = delete;
+                Brain & operator=(const Brain &) = delete;
 
                 unsigned addModule(std::vector<std::string>& inputs);
                 unsigned printModules(std::vector<std::string>&);
