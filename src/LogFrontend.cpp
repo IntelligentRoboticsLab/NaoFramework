@@ -45,16 +45,9 @@ namespace NaoFramework {
 
         static std::string logFolder;
 
-        void init(const std::string & logFolder) {
-            try {
-                boost::filesystem::create_directory(logFolder);
-            }
-            catch (const boost::filesystem::filesystem_error & e) {
-                if (!boost::filesystem::is_directory(logFolder)) {
-                    throw e;
-                }
-            }
-            NaoFramework::Log::logFolder = logFolder;
+        void init(const std::string & folder) {
+            logFolder = folder;
+            boost::filesystem::create_directory(logFolder);
 
             boost::shared_ptr< logging::core > core = logging::core::get();
 
