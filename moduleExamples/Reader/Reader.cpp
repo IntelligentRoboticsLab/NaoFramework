@@ -24,7 +24,7 @@ class Reader : public NaoFramework::Modules::DynamicModuleInterface {
 
         virtual void execute() { 
             int data = f_();
-            std::cout << "I'm Reader! From COM I read: "  << data << "\n";
+            log("I'm Reader! From COM I read: "  + std::to_string(data));
         }
     private:
         NaoFramework::Comm::RequireFunction<int> f_;

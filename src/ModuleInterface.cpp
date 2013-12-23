@@ -3,7 +3,7 @@
 namespace NaoFramework {
     namespace Modules {
         ModuleInterface::ModuleInterface(std::string moduleName) : name_(moduleName) {
-            Log::makeSink(name_);
+            Log::makeSink(name_, "Modules");
         }
 
         ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(other.name_) {

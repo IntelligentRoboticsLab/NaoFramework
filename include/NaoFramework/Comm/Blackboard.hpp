@@ -192,12 +192,9 @@ namespace NaoFramework {
         template<class T>
         ProvideFunction<T> Blackboard::makeProvideFunction(const std::string & key) {
             ProvideFunction<T> provider = [this, key](const T& input){
-                Log::log(name_, "Provider function for "+key);
                 auto & pair = board_[key];
-                Log::log(name_, "    Locking...");
                 WriteLock lock(pair.first);
 
-                Log::log(name_, "    Writing...");
                 pair.second = input;
             };
             return provider;

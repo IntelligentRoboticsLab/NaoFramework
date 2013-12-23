@@ -2,7 +2,7 @@
 
 namespace NaoFramework {
     namespace Comm {
-        Blackboard::Blackboard(std::string name) : name_(name) { Log::makeSink(name_); }
+        Blackboard::Blackboard(std::string name) : name_(name) { Log::makeSink(name_, "Blackboard"); }
         Blackboard::~Blackboard() { Log::removeSink(name_); }
 
         bool Blackboard::validateGlobals() const {
