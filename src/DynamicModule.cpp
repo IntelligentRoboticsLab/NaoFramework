@@ -1,12 +1,9 @@
 #include <NaoFramework/Modules/DynamicModule.hpp>
 
-#include <boost/any.hpp>
 #include <stdexcept>
+
 #include <dlfcn.h>
 
-#include <iostream>
-
-using std::cout;
 namespace NaoFramework {
     namespace Modules {
         #define TO_STRING_2(X) #X
@@ -16,7 +13,7 @@ namespace NaoFramework {
         // We need a separate function because of names passed to ModuleInterface:
         // we need to know the name of the module we are loading beforehand, but
         // we can't assume it from the library name.
-        DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm)
+        std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm)
         {
             // Load full library
             void * dllModule = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
@@ -29,10 +26,12 @@ namespace NaoFramework {
             // create an instance we might not be able to delete!
             dynamicModuleDump* moduleDeleter = (dynamicModuleDump*) dlsym(dllModule, DUMP_NAME );
             if ( moduleDeleter == nullptr ) throw std::runtime_error(dlerror());
-
+            // This is managed by the DynamicModule and it is actually deleted within
+            // the dll itself, so it's ok that we don't wrap it up because we don't want
+            // to actually delete it.
             DynamicModuleInterface* module = factory(comm);
-
-            return DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter);
+            // One day we'll use make_unique...
+            return std::unique_ptr<DynamicModule>( new DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter));
         }
 
         #undef FACTORY_NAME 

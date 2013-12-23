@@ -2,13 +2,15 @@
 #define NAO_FRAMEWORK_MODULES_DYNAMIC_MODULE_HEADER_FILE
 
 #include <NaoFramework/Modules/DynamicModuleInterface.hpp>
+
 #include <string>
+#include <memory>
 
 namespace NaoFramework {
     namespace Modules {
         class DynamicModule;
 
-        DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
+        std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
 
         class DynamicModule : public DynamicModuleInterface {
             public:
@@ -26,7 +28,7 @@ namespace NaoFramework {
                 dynamicModuleDump * moduleDeleter_; // This is a function
 
                 DynamicModule(std::string name, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter);
-                friend DynamicModule makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
+                friend std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
         };
     } // Modules
 } //NaoFramework
