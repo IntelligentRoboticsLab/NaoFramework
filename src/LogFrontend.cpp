@@ -89,7 +89,7 @@ namespace NaoFramework {
 
                 log("Log", "Set sink for client: " + client );
                 #if NAO_DEBUG
-                log("Log", "DEBUG: Auto Flushing is true");
+                log("Log", "Auto Flushing is true", MessagePriority::Debug);
                 #endif
                 availableSinks[client] = sink;
                 result = true;

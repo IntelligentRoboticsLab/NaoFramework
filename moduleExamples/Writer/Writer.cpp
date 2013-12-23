@@ -25,10 +25,8 @@ class Writer : public NaoFramework::Modules::DynamicModuleInterface {
         virtual void execute() { 
             int testData = 5;
             
-            std::cout << "I'm Writer! I'm setting comm to: " << testData << '\n';
+            log("I'm Writer! I'm setting comm to: " + std::to_string(testData));
             f_(testData);
-
-            log("I did something!");
         }
     private:
         NaoFramework::Comm::ProvideFunction<int> f_;

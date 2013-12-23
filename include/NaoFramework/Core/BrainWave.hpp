@@ -6,24 +6,25 @@
 #include <unordered_map>
 #include <atomic>
 #include <thread>
+#include <memory>
 
 namespace NaoFramework {
+    namespace Modules { class ModuleInterface; }
     namespace Core {
-        class ModuleInterface;
         class BrainWave {
             public:
                 BrainWave(std::string name);
                 ~BrainWave();
 
-                void addModule(ModuleInterface * module);
+                void addModule(std::unique_ptr<Modules::ModuleInterface> && module);
 
-                void run();
+                void execute();
                 void pause();
                 bool isRunning() const;
             private:
                 std::string name_;
 
-                std::vector<ModuleInterface*> modules_;
+                std::vector<std::unique_ptr<Modules::ModuleInterface>> modules_;
                 std::unordered_map<std::string, size_t> indices_;
 
                 std::atomic<bool> running_;
