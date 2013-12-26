@@ -5,17 +5,11 @@
 
 using namespace NaoFramework::Comm;
 
-struct Test {
-    ~Test() { std::cerr << "Bleah\n"; }
-    int x;
-    int y;
-};
-
 class Writer : public NaoFramework::Modules::DynamicModuleInterface {
     public:
         Writer(LocalBlackboardAdapter & c, ExternalBlackboardAdapterMap & m) : DynamicModuleInterface("Writer") {
             RegistrationError e = RegistrationError::None;
-            f_ = c.registerProvide<Test>("qqq", &e);
+            f_ = c.registerProvide<int>("test", &e);
             if ( e != RegistrationError::None ) {
                 log("Mistake..");
                 throw e;
@@ -30,14 +24,13 @@ class Writer : public NaoFramework::Modules::DynamicModuleInterface {
         }
 
         virtual void execute() { 
-            Test t;
             int testData = 5;
             
-            log("I'm Writer! I'm setting comm");// to: " + std::to_string(testData));
-            f_(t);
+            log("I'm Writer! I'm setting comm to: " + std::to_string(testData));
+            f_(testData);
         }
     private:
-        NaoFramework::Comm::ProvideFunction<Test> f_;
+        NaoFramework::Comm::ProvideFunction<int> f_;
 };
 
 MODULE_EXPORT(Writer)

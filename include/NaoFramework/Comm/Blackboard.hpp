@@ -25,7 +25,7 @@ namespace NaoFramework {
                 Blackboard(std::string name);
                 ~Blackboard();
 
-                // Cannot move this as we create funtions that point to us
+                // Cannot move this as we create functions that point to us
                 Blackboard(Blackboard &&) = delete;
                 const Blackboard & operator=(Blackboard &&) = delete;
                 // The function returned returns a copy here, so you may want to store the result

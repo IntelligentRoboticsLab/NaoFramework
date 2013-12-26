@@ -5,7 +5,7 @@
 
 namespace NaoFramework {
     namespace Core {
-        BrainWave::BrainWave(std::string name) : name_("BW_"+name), running_(false) {
+        BrainWave::BrainWave(std::string name) : name_(name), running_(false) {
             Log::makeSink(name_, "BrainWave"); 
         }
 
