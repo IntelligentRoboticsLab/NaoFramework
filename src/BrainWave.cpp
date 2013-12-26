@@ -5,15 +5,45 @@
 
 namespace NaoFramework {
     namespace Core {
-        BrainWave::BrainWave(std::string name) : name_(name), running_(false) {
+        BrainWave::BrainWave(std::string name) : name_("BW_"+name), running_(false) {
             Log::makeSink(name_, "BrainWave"); 
         }
 
         BrainWave::~BrainWave() {
-            Log::log(name_, "Shutting threads..");
             pause(); // We stop the thread when we die
-            Log::log(name_, "Threads are now shut..");
             Log::removeSink(name_);
+        }
+
+        BrainWave::BrainWave(BrainWave && other) : name_(std::move(other.name_)), 
+                                                   running_(other.running_.load(std::memory_order_acquire))
+        {
+            // If the other guy is running, we stop, copy data, and restart
+            bool running = running_.load(std::memory_order_acquire);
+
+            if ( running ) other.pause();
+
+            modules_ = std::move(other.modules_);
+            indices_ = std::move(other.indices_);
+
+            if ( running ) execute();
+        }
+                                                           
+        const BrainWave & BrainWave::operator=(BrainWave && other) {
+            pause(); // Stop whatever we where doing.
+            Log::removeSink(name_);
+
+            name_ = std::move(other.name_); // It's important to remove the name so that we don't close its sink.
+
+            bool running = running_ = other.running_.load(std::memory_order_acquire);
+
+            if ( running ) other.pause();
+
+            modules_ = std::move(other.modules_);
+            indices_ = std::move(other.indices_);
+
+            if ( running ) execute();
+
+            return *this;
         }
 
         // Policy is no touchy at runtime (you can add them if you
@@ -23,7 +53,7 @@ namespace NaoFramework {
         // are set by BBoard, this class limits itself to following 
         // those.
         void BrainWave::addModule(std::unique_ptr<Modules::ModuleInterface> && module) {
-            if ( isRunning() ) return;
+            if ( isRunning() ) return; // This in particular kills the module if it's not accepted
             Log::log(name_, "Adding new module: " + module->getName() );
             // First we get the name
             indices_[module->getName()] = modules_.size()-1;
@@ -68,6 +98,10 @@ namespace NaoFramework {
 
         bool BrainWave::isRunning() const {
             return running_.load(std::memory_order_acquire);
+        }
+
+        const std::string & BrainWave::getName() const {
+            return name_;
         }
     }
 }

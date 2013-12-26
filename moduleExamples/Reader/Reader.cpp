@@ -3,10 +3,11 @@
 #include <iostream>
 #include <vector>
 
+using namespace NaoFramework::Comm;
+
 class Reader : public NaoFramework::Modules::DynamicModuleInterface {
     public:
-        Reader(NaoFramework::Comm::LocalBlackboardAdapter & comm) : DynamicModuleInterface("Reader") {
-            using namespace NaoFramework::Comm;
+        Reader(LocalBlackboardAdapter & comm, ExternalBlackboardAdapterMap & o) : DynamicModuleInterface("Reader") {
             RegistrationError e = RegistrationError::None;
             f_ = comm.registerRequire<int>("test", &e);
             if ( e != RegistrationError::None ) {

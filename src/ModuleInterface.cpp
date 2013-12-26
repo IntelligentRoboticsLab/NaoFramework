@@ -6,22 +6,21 @@ namespace NaoFramework {
             Log::makeSink(name_, "Modules");
         }
 
-        ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(other.name_) {
-            other.name_ = "";
-        }
-
-        const ModuleInterface & ModuleInterface::operator=(ModuleInterface&& other) {
-            name_ = other.name_;
-            other.name_ = "";
-
-            return *this;
-        }
-
         ModuleInterface::~ModuleInterface() {
             Log::removeSink(name_); 
         }
 
-        std::string ModuleInterface::getName() const {
+        ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(std::move(other.name_)) {}
+
+        const ModuleInterface & ModuleInterface::operator=(ModuleInterface&& other) {
+            Log::removeSink(name_); 
+
+            name_ = std::move(other.name_);
+
+            return *this;
+        }
+
+        const std::string & ModuleInterface::getName() const {
             return name_;
         }
 

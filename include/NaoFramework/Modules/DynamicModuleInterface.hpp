@@ -2,6 +2,7 @@
 #define NAO_FRAMEWORK_MODULES_DYNAMIC_MODULE_INTERFACE_HEADER_FILE
 
 #include <NaoFramework/Comm/LocalBlackboardAdapter.hpp>
+#include <NaoFramework/Comm/ExternalBlackboardAdapterMap.hpp>
 
 #include <NaoFramework/Modules/ModuleInterface.hpp>
 
@@ -12,8 +13,8 @@ namespace NaoFramework {
                 using ModuleInterface::ModuleInterface;
         };
 
-        using dynamicModuleFactory  = DynamicModuleInterface*    (Comm::LocalBlackboardAdapter & comm);
-        using dynamicModuleDump     = void              (DynamicModuleInterface**);
+        using dynamicModuleFactory  = DynamicModuleInterface* (Comm::LocalBlackboardAdapter &, Comm::ExternalBlackboardAdapterMap &);
+        using dynamicModuleDump     = void                    (DynamicModuleInterface**);
 
     } // Modules
 } //NaoFramework
@@ -23,19 +24,19 @@ namespace NaoFramework {
 
 // We need a deleter because the module 
 // may redefine operator delete.
-#define MODULE_EXPORT(X)                                                                        \
-extern "C" {                                                                                    \
-    NaoFramework::Modules::dynamicModuleFactory NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY;           \
-    NaoFramework::Modules::dynamicModuleDump    NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP;              \
-                                                                                                \
-    NaoFramework::Modules::DynamicModuleInterface* NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY         \
-    ( NaoFramework::Comm::LocalBlackboardAdapter & comm ) {                                     \
-        return new X(comm);                                                                     \
-    }                                                                                           \
-    void NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP(NaoFramework::Modules::DynamicModuleInterface**x) {  \
-        delete *x;                                                                              \
-        *x = nullptr;                                                                           \
-    }                                                                                           \
+#define MODULE_EXPORT(X)                                                                                                \
+extern "C" {                                                                                                            \
+    NaoFramework::Modules::dynamicModuleFactory NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY;                                   \
+    NaoFramework::Modules::dynamicModuleDump    NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP;                                      \
+                                                                                                                        \
+    NaoFramework::Modules::DynamicModuleInterface* NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY                                 \
+    ( NaoFramework::Comm::LocalBlackboardAdapter & comm, NaoFramework::Comm::ExternalBlackboardAdapterMap & others ) {  \
+        return new X(comm, others);                                                                                     \
+    }                                                                                                                   \
+    void NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP(NaoFramework::Modules::DynamicModuleInterface**x) {                          \
+        delete *x;                                                                                                      \
+        *x = nullptr;                                                                                                   \
+    }                                                                                                                   \
 }
 
 #endif // Header guard

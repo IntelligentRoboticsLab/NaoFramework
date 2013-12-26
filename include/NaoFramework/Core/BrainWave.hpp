@@ -13,18 +13,25 @@ namespace NaoFramework {
     namespace Core {
         class BrainWave {
             public:
+                using Module = std::unique_ptr<Modules::ModuleInterface>;
+
                 BrainWave(std::string name);
                 ~BrainWave();
+                // Can't copy because of std::thread.
+                BrainWave(BrainWave && wave);
+                const BrainWave & operator=(BrainWave && wave);
 
-                void addModule(std::unique_ptr<Modules::ModuleInterface> && module);
+                void addModule(Module && module);
 
                 void execute();
                 void pause();
                 bool isRunning() const;
+
+                const std::string & getName() const;
             private:
                 std::string name_;
 
-                std::vector<std::unique_ptr<Modules::ModuleInterface>> modules_;
+                std::vector<Module> modules_;
                 std::unordered_map<std::string, size_t> indices_;
 
                 std::atomic<bool> running_;

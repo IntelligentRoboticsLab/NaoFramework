@@ -1,36 +1,94 @@
 #include <NaoFramework/Core/Brain.hpp>
 #include <NaoFramework/Modules/DynamicModule.hpp>
-//#include <NaoFramework/Log/Frontend.hpp>
 #include <NaoFramework/Comm/Blackboard.hpp>
-//#include <NaoFramework/Comm/ExternalBlackboardAdapter.hpp>
+#include <NaoFramework/Comm/ExternalBlackboardAdapter.hpp>
+#include <NaoFramework/Comm/ExternalBlackboardAdapterMap.hpp>
 #include <NaoFramework/Comm/LocalBlackboardAdapter.hpp>
 
 #include <iostream>
 
 using std::cout;
 
-// TODO: Make this into a class and its own file; put it in the include/s
 namespace NaoFramework {
     namespace Core {
-        Brain::Brain() : testWave_("Wave"), b("BBoard") {}
+        class Brain::ExternalBlackboardMap : public Comm::ExternalBlackboardAdapterMap {
+            public:
+                ExternalBlackboardMap(Brain & b) : brain_(b) {}
+                virtual Comm::ExternalBlackboardAdapter operator[]( const std::string & key ) {
+                    if ( !brain_.waveExists(key) ) {
+                        brain_.makeWave(key);
+                        std::cout << "A new wave was referenced, and thus created: " << key << '\n';
+                    }
+                    return Comm::ExternalBlackboardAdapter(*(brain_.waves_.at(key).second));
+                }
+            private:
+                Brain & brain_;
+        };
+
+        Brain::Brain() {}
         Brain::~Brain() {
-            testWave_.pause();
+            for ( auto & wave : waves_ )
+                wave.second.first.pause();
+            blackboards_.clear();
+            waves_.clear();
         }
 
-        unsigned Brain::addDynamicModule(std::vector<std::string>& inputs) {
+        bool Brain::waveExists(const std::string & wave) const {
+            auto it = waves_.find(wave);
+            return it != std::end(waves_);
+        }
+
+        void Brain::makeWave(const std::string & key) {
+            blackboards_.emplace_front(key);
+            waves_.emplace (key,
+                            std::make_pair(
+                                key,
+                                blackboards_.begin()
+                            ));
+        }
+
+        unsigned Brain::createWave(Inputs inputs) {
             if ( inputs.size() < 2 ) {
-                std::cout << "Usage: " << inputs[0] << " module_filename\n";
+                std::cout << "Usage: " << inputs[0] << " wave_name\n";
                 return 1;
             }
 
+            std::cout << "Wave '" << inputs[1];
+            if ( !waveExists(inputs[1]) ) {
+                makeWave(inputs[1]);
+                std::cout << "' created.\n"; 
+            }
+            else std::cout << "' exists already.\n";
+            
+            return 0;
+        }
+
+        unsigned Brain::addDynamicModule(Inputs inputs) {
+            if ( inputs.size() < 3 ) {
+                std::cout << "Usage: " << inputs[0] << " wave_name module_filename\n";
+                return 1;
+            }
+            // Wave check
+            if ( !waveExists(inputs[1]) ) {
+                std::cout << "Error, wave '" << inputs[1] << "' does not exist.\n"; 
+                return 1;
+            }
+
+            auto wave = inputs[1];
+            auto module = inputs[2];
+
             unsigned loaded = 1; // 1 = Error!
             try {
-                auto adapter = NaoFramework::Comm::LocalBlackboardAdapter(b);
-                auto dynModule = NaoFramework::Modules::makeDynamicModule(inputs[1], adapter);
-                std::cout << "Successfully loaded module: " << dynModule->getName() << "\n";
-                testWave_.addModule(std::move(dynModule)); // Give ownership
-                // Here dynModule is empty! If we want to print here, we need to add some
-                // functions to BWave first (which we'll need to add anyway)
+                auto adapter   = Comm::LocalBlackboardAdapter(*(waves_.at(wave).second));
+                auto globals   = ExternalBlackboardMap(*this);
+
+                auto dynModule = Modules::makeDynamicModule(module, adapter, globals);
+
+                auto moduleName = dynModule->getName();
+
+                waves_.at(wave).first.addModule(std::move(dynModule)); // Give ownership -> dynModule empty
+
+                std::cout << "Successfully loaded module: " << moduleName << "\n";
                 loaded = 0;
             }
             catch ( std::runtime_error & e ) {
@@ -39,15 +97,20 @@ namespace NaoFramework {
             return loaded;
         }
 
-        unsigned Brain::execute(std::vector<std::string>&) {
-            if ( ! b.validateGlobals() ) {
-                std::cout << "Dependencies are not met!\n";
-                // We should give out better info on what is wrong. BBoard, save us!
-                return 1;
+        unsigned Brain::execute(Inputs) {
+            for ( auto & b : blackboards_ ) {
+                if ( ! b.validateGlobals() ) {
+                    std::cout << "Dependencies for wave '" << b.getName() << "' are not met!\n";
+                    // We should give out better info on what is wrong. BBoard, save us!
+                    return 1;
+                }
             }
-            // Launch thread
-            testWave_.execute();
-            std::cout << "Waves successfully started in the background!\n";
+            // Launch threads
+            for ( auto & wave : waves_ )
+                wave.second.first.execute();
+
+            std::cout << "All waves successfully started in the background!\n";
+
             return 0;
         }
     }

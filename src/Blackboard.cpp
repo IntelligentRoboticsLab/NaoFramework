@@ -2,7 +2,7 @@
 
 namespace NaoFramework {
     namespace Comm {
-        Blackboard::Blackboard(std::string name) : name_(name) { Log::makeSink(name_, "Blackboard"); }
+        Blackboard::Blackboard(std::string name) : name_("BB_"+name) { Log::makeSink(name_, "Blackboard"); }
         Blackboard::~Blackboard() { Log::removeSink(name_); }
 
         bool Blackboard::validateGlobals() const {
@@ -10,6 +10,10 @@ namespace NaoFramework {
                 if ( std::get<0>(pair.second) == TypeState::Requested ) return false;
             }
             return true;
+        }
+
+        const std::string & Blackboard::getName() const {
+            return name_;
         }
     }
 }

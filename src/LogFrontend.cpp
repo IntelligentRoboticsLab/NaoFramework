@@ -60,6 +60,10 @@ namespace NaoFramework {
             // We can avoid removing our sink because we're going to log during
             // the whole application anyway.
             makeSink("Log");
+            #ifdef NAO_DEBUG
+            makeSink("Global");
+            availableSinks["Global"]->reset_filter();
+            #endif
         }
 
         bool makeSink(const std::string & client, const std::string & subfolder) {

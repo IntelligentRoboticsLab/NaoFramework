@@ -25,8 +25,9 @@ int main(int argc, const char * argv[]) {
     Console b("OtherConsole> ");
 
     Brain brain;
-    c.registerCommand("test",std::bind(&Brain::execute,             &brain, pl::_1));
-    c.registerCommand("add", std::bind(&Brain::addDynamicModule,    &brain, pl::_1));
+    c.registerCommand("add",    std::bind(&Brain::addDynamicModule,     &brain, pl::_1));
+    c.registerCommand("create", std::bind(&Brain::createWave,           &brain, pl::_1));
+    c.registerCommand("test",   std::bind(&Brain::execute,              &brain, pl::_1));
 
     cout << "\nWelcome to the NaoFramework command line interface!\n";
     // Default running script
