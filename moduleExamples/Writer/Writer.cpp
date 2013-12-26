@@ -3,12 +3,13 @@
 #include <iostream>
 #include <vector>
 
+using namespace NaoFramework::Comm;
+
 class Writer : public NaoFramework::Modules::DynamicModuleInterface {
     public:
-        Writer(NaoFramework::Comm::LocalBlackboardAdapter & comm) : DynamicModuleInterface("Writer") {
-            using namespace NaoFramework::Comm;
+        Writer(LocalBlackboardAdapter & c, ExternalBlackboardAdapterMap & m) : DynamicModuleInterface("Writer") {
             RegistrationError e = RegistrationError::None;
-            f_ = comm.registerProvide<int>("test", &e);
+            f_ = c.registerProvide<int>("test", &e);
             if ( e != RegistrationError::None ) {
                 log("Mistake..");
                 throw e;

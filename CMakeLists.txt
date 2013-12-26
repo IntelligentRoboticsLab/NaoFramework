@@ -12,7 +12,7 @@ ADD_DEFINITIONS(
     # Other flags
 )
 # Flags to do in debug build
-set(CMAKE_CXX_FLAGS_DEBUG "-DNAO_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-DNAO_DEBUG -g")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 

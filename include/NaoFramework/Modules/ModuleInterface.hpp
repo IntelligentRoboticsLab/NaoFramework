@@ -20,7 +20,7 @@ namespace NaoFramework {
                 virtual ~ModuleInterface();
                 virtual void execute() = 0;
 
-                std::string getName() const;
+                const std::string & getName() const;
 
                 void log(const std::string &, Log::MessagePriority p = Log::Info);
 

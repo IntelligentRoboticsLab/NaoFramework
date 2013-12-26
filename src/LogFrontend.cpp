@@ -40,13 +40,17 @@ namespace NaoFramework {
         // log interface outside, will automatically die on program shutdown. This may cause
         // problems in case you are storing modules or logging stuff as globals. Don't do that!
         static std::unordered_map<std::string, boost::shared_ptr<TextSink>> availableSinks;
-
         static std::mutex availableSinksMutex;
 
         static std::string logFolder;
 
+        std::string folderize(const std::string & name) {
+            if ( !name.empty() && name.back() != '/' ) return name + '/';
+            return name;
+        }
+
         void init(const std::string & folder) {
-            logFolder = folder;
+            logFolder = folderize(folder);
             boost::filesystem::create_directory(logFolder);
 
             boost::shared_ptr< logging::core > core = logging::core::get();
@@ -56,10 +60,17 @@ namespace NaoFramework {
             // We can avoid removing our sink because we're going to log during
             // the whole application anyway.
             makeSink("Log");
+            #ifdef NAO_DEBUG
+            makeSink("Global");
+            availableSinks["Global"]->reset_filter();
+            #endif
         }
 
-        bool makeSink(const std::string & client) {
+        bool makeSink(const std::string & client, const std::string & subfolder) {
             bool result = false;
+            std::string subfolderName = folderize(subfolder);
+            boost::filesystem::create_directory(logFolder+subfolderName);
+
             availableSinksMutex.lock();
             auto it = availableSinks.find(client);
 
@@ -69,7 +80,7 @@ namespace NaoFramework {
 
                 // Add a stream to write log to
                 sink->locked_backend()->add_stream(
-                        boost::make_shared< std::ofstream >(logFolder+"/"+client));
+                        boost::make_shared< std::ofstream >(logFolder+subfolderName+client));
                 // Flush continuously, only in debug mode
                 #if NAO_DEBUG
                 sink->locked_backend()->auto_flush(true);

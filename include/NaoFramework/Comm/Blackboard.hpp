@@ -24,6 +24,10 @@ namespace NaoFramework {
             public:
                 Blackboard(std::string name);
                 ~Blackboard();
+
+                // Cannot move this as we create functions that point to us
+                Blackboard(Blackboard &&) = delete;
+                const Blackboard & operator=(Blackboard &&) = delete;
                 // The function returned returns a copy here, so you may want to store the result
                 // somewhere or it gets expensive. The reason is that we can't allow you to have
                 // a reference, otherwise you'd be bypassing the locking mechanism which prevents
@@ -53,6 +57,8 @@ namespace NaoFramework {
                 // Since the initialization of global requires and global provides is not linear, this
                 // gives a way to discern whether the current configuration is OK under that side.
                 bool validateGlobals() const;
+
+                const std::string & getName() const;
 
             private:
                 std::string name_;
@@ -173,7 +179,7 @@ namespace NaoFramework {
 
             // Setting up board key. We have to do this because record creation is not
             // protected by the mutexes, only the modifications are!
-            board_[key] = std::make_pair( {}, value );
+            board_[key].second = value;
 
             return makeProvideFunction<T>(key);
         }
@@ -192,12 +198,9 @@ namespace NaoFramework {
         template<class T>
         ProvideFunction<T> Blackboard::makeProvideFunction(const std::string & key) {
             ProvideFunction<T> provider = [this, key](const T& input){
-                Log::log(name_, "Provider function for "+key);
                 auto & pair = board_[key];
-                Log::log(name_, "    Locking...");
                 WriteLock lock(pair.first);
 
-                Log::log(name_, "    Writing...");
                 pair.second = input;
             };
             return provider;

@@ -13,7 +13,9 @@ namespace NaoFramework {
         // We need a separate function because of names passed to ModuleInterface:
         // we need to know the name of the module we are loading beforehand, but
         // we can't assume it from the library name.
-        std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm)
+        std::unique_ptr<DynamicModule> makeDynamicModule(const std::string & moduleFilename,
+                                                         Comm::LocalBlackboardAdapter & comm,
+                                                         Comm::ExternalBlackboardAdapterMap & others)
         {
             // Load full library
             void * dllModule = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
@@ -29,7 +31,7 @@ namespace NaoFramework {
             // This is managed by the DynamicModule and it is actually deleted within
             // the dll itself, so it's ok that we don't wrap it up because we don't want
             // to actually delete it.
-            DynamicModuleInterface* module = factory(comm);
+            DynamicModuleInterface* module = factory(comm, others);
             // One day we'll use make_unique...
             return std::unique_ptr<DynamicModule>( new DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter));
         }

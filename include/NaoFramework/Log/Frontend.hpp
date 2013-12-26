@@ -5,9 +5,9 @@
 
 namespace NaoFramework {
     namespace Log {
-        void init       (const std::string & folder = "log/");
+        void init       (const std::string & folder = "log");
 
-        bool makeSink   (const std::string & client);
+        bool makeSink   (const std::string & client, const std::string & subfolder = "");
         void removeSink (const std::string & client);
 
         // Do not update this as it mirrors

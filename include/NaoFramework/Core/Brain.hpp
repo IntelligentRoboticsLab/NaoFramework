@@ -7,25 +7,36 @@
 
 #include <string>
 #include <vector>
+#include <list>
+#include <unordered_map>
 
 namespace NaoFramework {
     namespace Core {
         class Brain {
             public:
+                using Inputs = std::vector<std::string>&;
+
                 Brain();
                 ~Brain();
+
                 Brain(const Brain &) = delete;
                 Brain & operator=(const Brain &) = delete;
 
+                bool waveExists(const std::string & wave) const;
+
                 // These are the functions added by the Console
                 // to give the API of the framework.
-                unsigned addDynamicModule(std::vector<std::string>& inputs);
-                unsigned execute(std::vector<std::string>&);
+                unsigned createWave         (Inputs inputs);
+                unsigned addDynamicModule   (Inputs inputs);
+                unsigned execute            (Inputs inputs);
             private:
-                // Testing, this should be a map of waves, but final
-                // setup we still have to set
-                BrainWave testWave_;
-                NaoFramework::Comm::Blackboard b;
+                using BlackboardList = std::list<Comm::Blackboard>;
+                BlackboardList blackboards_;
+                std::unordered_map<std::string,std::pair<BrainWave, BlackboardList::iterator>> waves_;
+
+                void makeWave(const std::string &);
+
+                class ExternalBlackboardMap;
         };
     } // Core
 } //NaoFramework

@@ -10,7 +10,7 @@ namespace NaoFramework {
     namespace Modules {
         class DynamicModule;
 
-        std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
+        std::unique_ptr<DynamicModule> makeDynamicModule(const std::string & moduleFilename, Comm::LocalBlackboardAdapter & mainComm, Comm::ExternalBlackboardAdapterMap & externalComm);
 
         class DynamicModule : public DynamicModuleInterface {
             public:
@@ -28,7 +28,7 @@ namespace NaoFramework {
                 dynamicModuleDump * moduleDeleter_; // This is a function
 
                 DynamicModule(std::string name, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter);
-                friend std::unique_ptr<DynamicModule> makeDynamicModule(std::string moduleFilename, Comm::LocalBlackboardAdapter & comm);
+                friend std::unique_ptr<DynamicModule> makeDynamicModule(const std::string &, Comm::LocalBlackboardAdapter &, Comm::ExternalBlackboardAdapterMap &);
         };
     } // Modules
 } //NaoFramework
