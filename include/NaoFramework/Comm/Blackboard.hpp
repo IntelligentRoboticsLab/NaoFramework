@@ -12,7 +12,6 @@
 #include <boost/thread.hpp>
 
 namespace NaoFramework {
-    namespace Core { class Brain; }
     namespace Comm {
         // A Blackboard object allows in-out communication for a single thread, and out-only
         // communication from a thread to many threads. The object allows registration of data
