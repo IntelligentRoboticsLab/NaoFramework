@@ -2,8 +2,8 @@
 
 namespace NaoFramework {
     namespace Comm {
-        Blackboard::Blackboard(std::string name) : name_("BB_"+name) { Log::makeSink(name_, "Blackboard"); }
-        Blackboard::~Blackboard() { Log::removeSink(name_); }
+        Blackboard::Blackboard(std::string name) : Loggable(name, "Blackboard"), name_(name) {}
+        Blackboard::~Blackboard() {}
 
         bool Blackboard::validateGlobals() const {
             for ( auto pair : typeCheck_ ) {

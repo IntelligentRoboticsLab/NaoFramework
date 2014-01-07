@@ -5,6 +5,9 @@
 
 namespace NaoFramework {
     namespace Comm {
+        /**
+         * @brief This enumeration contains all possible errors that a Blackboard can report during a registration.
+         */
         enum class RegistrationError {
             None,
             Requested,

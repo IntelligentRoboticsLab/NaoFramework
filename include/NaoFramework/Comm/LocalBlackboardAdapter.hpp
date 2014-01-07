@@ -8,25 +8,35 @@
 
 namespace NaoFramework {
     namespace Comm {
+        /**
+         * @brief This class provides a temporary wrapper around Blackboard for limited access.
+         *
+         * This adapter is provided as a means to shield/block modules registering requests to their
+         * local Blackboard from using non-local functions. All functions are simply redirects to
+         * their equivalent functions within Blackboard.
+         */
         class LocalBlackboardAdapter {
             public:
+                /**
+                 * @brief Basic constructor.
+                 *
+                 * @param b A reference to a Blackboard instance.
+                 */
                 LocalBlackboardAdapter(Blackboard & b) : blackboard_(b) {} 
 
+                /// \sa Blackboard::registerRequire()
                 template <class T>
                 RequireFunction<T> registerRequire          (const std::string & s, RegistrationError * e = nullptr) {
                     return blackboard_.registerRequire<T>(s,e);
                 }
 
-                // The function returned here takes a T value and overwrites the appropriate key
-                // with it.
+                /// \sa Blackboard::registerProvide()
                 template <class T>
                 ProvideFunction<T> registerProvide          (const std::string & s, RegistrationError * e = nullptr) {
                     return blackboard_.registerProvide<T>(s,e);
                 }
 
-                // This function not only registers a provide, but sets it, so that inter-thread
-                // requires don't break no matter the thread-order. Info that has to be read outside
-                // of the thread where it is provided should use this function.
+                /// \sa Blackboard::registerGlobalProvide()
                 template <class T>
                 ProvideFunction<T> registerGlobalProvide    (const std::string & s, const T & v, RegistrationError * e = nullptr) {
                     return blackboard_.registerGlobalProvide<T>(s, v, e);

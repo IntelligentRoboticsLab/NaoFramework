@@ -2,7 +2,7 @@
 #define NAO_FRAMEWORK_COMM_BLACKBOARD_HEADER_FILE
 
 #include <NaoFramework/Comm/Types.hpp>
-#include <NaoFramework/Log/Frontend.hpp>
+#include <NaoFramework/Log/Loggable.hpp>
 
 #include <unordered_map>
 #include <functional>
@@ -13,51 +13,178 @@
 
 namespace NaoFramework {
     namespace Comm {
-        // A Blackboard object allows in-out communication for a single thread, and out-only
-        // communication from a thread to many threads. The object allows registration of data
-        // requests and data provisions of any sizes. 
-        //
-        // Blackboard is able to perform run-time type checking. It does so in two different ways.
-        // 
-        // On one side there is the local-communication type check. This requires each request and
-        class Blackboard {
+        /**
+         * @brief This class provides communication facilities between modules.
+         *
+         * This class implements in-out communication for a single thread, and out-only
+         * communication from a thread to many threads. The object allows registration of data
+         * requests and data provisions of any size and type. 
+         *                                                                                         
+         * Blackboard is able to perform run-time type checking. Pre-emptive checks are performed
+         * for single threaded requests, so that invalid data requests/provisions are treated
+         * as errors. It is important to notice that such errors do NOT throw, but instead are
+         * left to the caller modules to manage (and they can throw if they want to).
+         *
+         * In addition Blackboard provides a method called validateGlobals() that checks 
+         * for interdependent and cyclic thread data dependencies, but only once all requests 
+         * have been registered. This method has to be called manually.
+         * 
+         * Thread local communication works as follows. Each module must register its own 
+         * requirements for data and its own provisions of data. Each registration must follow
+         * the order of module execution within the local thread, as typechecking
+         * happens in a sequential manner.
+         *
+         * A module can register a request for data with a certain key and type.
+         * The request is accepted unless:
+         *
+         * - The specified key is being provided with a different type at the time of the request.
+         * - The specified key is not being provided at all, but a different request with a 
+         *   different type has already been accepted for this key.
+         *
+         * \sa registerRequire()
+         *
+         * A module can register a provision of data with a certain key and type.
+         * The request is accepted unless:
+         *
+         * - The specified key has not yet been provided, but it has been requested with any type.
+         * - A global provision of data on the specified key has already been requested.
+         *
+         * \sa registerProvide()
+         *
+         * A module can register a global provision of data with a certain key and type. A global
+         * provision is slighly different from a normal provision, so that it can safely serve requests
+         * between threads. In addition, it can serve already registered local requests on the same key,
+         * which did not have a previous temporal provision. To do so, a global provision of data requires
+         * an initial value to be setup on the key, so that at least a value is always available to be 
+         * requested. In addition, to keep things simple and consistent, a single global provider is
+         * allowed on a given key, with no other providers, be it local or global.
+         * The request is accepted unless:
+         *
+         * - A local provider of data is already registered on the same key.
+         * - A global provider of data is already registered on the same key.
+         * - A request for data of a different type is already registered on the same key.
+         *
+         * \sa registerGlobalProvide()
+         *
+         * Finally, a module can register a global request for data. These request will arrive from 
+         * modules of other threads, and thus must be served by global data provisions, as Blackboard
+         * must guarantee that with any possible thread scheduling such a request will return some value.
+         * Local or global data requests are treated the same, except for validation rules.
+         * The request is accepted unless:
+         *
+         * - A local provider of data is already registered on the same key.
+         * - A global provider of data is already registered on the same key, but with a different type.
+         * - A request for data of a different type is already registered on the same key.
+         *
+         * \sa registerGlobalRequire()
+         */
+        class Blackboard : public Log::Loggable {
             public:
+                /**
+                 * @brief Basic constructor.
+                 *
+                 * Blackboard slighly modifies the name of the sink in order to avoid logging client
+                 * conflicts. The name of the instance is however unchanged.
+                 *
+                 * @param name The name of the Blackboard.
+                 */
                 Blackboard(std::string name);
+
+                /**
+                 * @brief Basic destructor.
+                 *
+                 * Cleans the logging sink.
+                 */
                 ~Blackboard();
 
-                // Cannot move this as we create functions that point to us
+                // Cannot move Blackboard as it creates functions that point to it.
                 Blackboard(Blackboard &&) = delete;
                 const Blackboard & operator=(Blackboard &&) = delete;
-                // The function returned returns a copy here, so you may want to store the result
-                // somewhere or it gets expensive. The reason is that we can't allow you to have
-                // a reference, otherwise you'd be bypassing the locking mechanism which prevents
-                // data-corruption.
-                //
-                // As an addendum, it is possible to create a different function that returns a pointer
-                // which is allocated if the key exists, or empty if it does not. Not sure if that
-                // can have any uses, we can possibly implement that at a later time.
+                
+                /**
+                 * @brief This function registers a data request of the given type and key.
+                 *
+                 * This function returns a function that can be used to access the data.                  *
+                 * The function returned returns a copy here, so you may want to store the result
+                 * somewhere or it gets expensive. The reason is that we can't allow you to have
+                 * a reference, otherwise you'd be bypassing the locking mechanism which prevents
+                 * data-corruption.
+                 *                                                                                      
+                 * As an addendum, it is possible to create a different function that returns a pointer
+                 * which is allocated if the key exists, or empty if it does not. Not sure if that
+                 * can have any uses, we can possibly implement that at a later time.
+                 *
+                 * @tparam T The type of the data request.
+                 * @param key The key that should hold the data.
+                 * @param e A pointer to report eventual errors to the caller.
+                 *
+                 * @return A function to access data if successful, an empty function otherwise.
+                 */
                 template <class T>
-                RequireFunction<T> registerRequire          (const std::string &, RegistrationError * e = nullptr);
+                RequireFunction<T> registerRequire          (const std::string & key, RegistrationError * e = nullptr);
 
-                // The function returned here takes a T value and overwrites the appropriate key
-                // with it.
+                /**
+                 * @brief This function registers a local data provision with the given type and key.
+                 *
+                 * @tparam T The type of the data provided.
+                 * @param key The key had should hold the data.
+                 * @param e A pointer to report eventual errors to the caller.
+                 *
+                 * @return A function to set data if successful, an empty function otherwise.
+                 */
                 template <class T>
-                ProvideFunction<T> registerProvide          (const std::string &, RegistrationError * e = nullptr);
+                ProvideFunction<T> registerProvide          (const std::string & key, RegistrationError * e = nullptr);
 
-                // This function is called by other threads in order to check for 
+                /**
+                 * @brief This function register a global data request with the given type and key.
+                 *
+                 * This function returns a function that can be used to access the data.
+                 * The function returned returns a copy here, so you may want to store the result
+                 * somewhere or it gets expensive. The reason is that we can't allow you to have
+                 * a reference, otherwise you'd be bypassing the locking mechanism which prevents
+                 * data-corruption.
+                 *
+                 * @tparam T The type of the data request.
+                 * @param key The key that should hold the data.
+                 * @param e A pointer to report eventual errors to the caller.
+                 *
+                 * @return A function to access data if successful, an empty function otherwise.
+                 */
                 template <class T>
-                RequireFunction<T> registerGlobalRequire    (const std::string &, RegistrationError * e = nullptr);
+                RequireFunction<T> registerGlobalRequire    (const std::string & key, RegistrationError * e = nullptr);
 
-                // This function not only registers a provide, but sets it, so that inter-thread
-                // requires don't break no matter the thread-order. Info that has to be read outside
-                // of the thread where it is provided should use this function.
+                /**
+                 * @brief A function to register a global provision of data with the given type and key.
+                 *
+                 * This function not only registers a provide, but sets it, so that inter-thread
+                 * requires don't break no matter the thread-order. Info that has to be read outside
+                 * of the thread where it is provided should use this function.
+                 *
+                 * @tparam T The type of the data provided.
+                 * @param key The key that should hold the data.
+                 * @param data An initial value for the data.
+                 * @param e A pointer to report eventual errors to the caller.
+                 *
+                 * @return A function to set data if successful, an empty function otherwise.
+                 */
                 template <class T>
-                ProvideFunction<T> registerGlobalProvide    (const std::string &, const T &, RegistrationError * e = nullptr);
+                ProvideFunction<T> registerGlobalProvide    (const std::string & key, const T & data, RegistrationError * e = nullptr);
 
-                // Since the initialization of global requires and global provides is not linear, this
-                // gives a way to discern whether the current configuration is OK under that side.
+                /**
+                 * @brief This function checks whether all data requests have been provided for.
+                 *
+                 * Since the initialization of global requires and global provides is not linear, this
+                 * gives a way to discern whether the current configuration is OK under that side.
+                 *
+                 * @return 
+                 */
                 bool validateGlobals() const;
 
+                /**
+                 * @brief This function returns the name of the Blackboard.
+                 *
+                 * @return The name of the Blackboard.
+                 */
                 const std::string & getName() const;
 
             private:
@@ -106,12 +233,12 @@ namespace NaoFramework {
 
         template <class T>
         ProvideFunction<T> Blackboard::registerProvide(const std::string & key, RegistrationError * e) {
-            Log::log(name_, "Providing " + key);
+            log("Providing " + key);
             auto it = board_.find(key);
             std::type_index type(typeid(T));
 
             if ( it != std::end(board_) ) {
-                Log::log(name_, "    Already registered.");
+                log("    Already registered.");
                 auto & pair = typeCheck_.at(key);
                 // If it was requested, then the only way this is going to work is that the key gets GlobalProvided.
                 // Since global providers are unique, we can't provide here.
@@ -128,17 +255,17 @@ namespace NaoFramework {
                 else std::get<1>(pair) = typeid(T);
             }
             else {
-                Log::log(name_, "    New registration.");
+                log("    New registration.");
                 typeCheck_.emplace(key,std::make_pair(TypeState::Provided, type));
             }
 
             // Setting up board key. We have to do this because record creation is not
             // protected by the mutexes, only the modifications are!
-            Log::log(name_, "Setting " + key);
+            log("Setting " + key);
             board_[key];
 
             // Creating accessor function.
-            Log::log(name_, "Building provider function.");
+            log("Building provider function.");
             return makeProvideFunction<T>(key);
         }
 
@@ -154,7 +281,7 @@ namespace NaoFramework {
                 if ( e ) *e = RegistrationError::LocallyProvided;
                 return RequireFunction<T>();
             }
-
+            // Applies all local require constraints
             return registerRequire<T>(key);
         }
 
@@ -164,13 +291,19 @@ namespace NaoFramework {
             std::type_index type(typeid(T));
 
             if ( it != std::end(board_) ) {
-                auto & currentState = std::get<0>(typeCheck_.at(key));
+                auto & tuple = typeCheck_.at(key);
+                auto & currentState = std::get<0>(tuple);
+
                 if ( currentState == TypeState::Provided ) {
                     if ( e ) *e = RegistrationError::LocallyProvided;
                     return ProvideFunction<T>();
                 }
                 else if ( currentState == TypeState::GlobalProvided ) {
                     if ( e ) *e = RegistrationError::GloballyProvided;
+                    return ProvideFunction<T>();
+                }
+                else if ( type != std::get<1>(tuple) ) {
+                    if ( e ) *e = RegistrationError::WrongType;
                     return ProvideFunction<T>();
                 }
                 currentState = TypeState::GlobalProvided;
