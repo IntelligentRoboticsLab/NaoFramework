@@ -86,7 +86,7 @@ namespace NaoFramework {
                 sink->locked_backend()->auto_flush(true);
                 #endif
                 // Only get messages from caller 
-                sink->set_filter(expr::has_attr(clientAttribute) && clientAttribute == client);
+                sink->set_filter(expr::has_attr(clientAttribute) && clientAttribute == subfolderName+client);
 
                 sink->set_formatter
                 (
