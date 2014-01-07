@@ -6,13 +6,15 @@
 
 namespace NaoFramework {
     namespace Modules {
+        // These macros are used to transform the names of the functions defined in 
+        // DynamicModuleInterface.hpp into strings so we can load them.
         #define TO_STRING_2(X) #X
         #define TO_STRING(X) TO_STRING_2(X)
         #define FACTORY_NAME TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_FACTORY)
         #define DUMP_NAME    TO_STRING(NAO_FRAMEWORK_DYNAMIC_MODULE_DUMP)
-        // We need a separate function because of names passed to ModuleInterface:
+        // We need a separate function because names are set in ModuleInterface:
         // we need to know the name of the module we are loading beforehand, but
-        // we can't assume it from the library name.
+        // we can't assume it from the library filename.
         std::unique_ptr<DynamicModule> makeDynamicModule(const std::string & moduleFilename,
                                                          Comm::LocalBlackboardAdapter & comm,
                                                          Comm::ExternalBlackboardAdapterMap & others)
@@ -21,24 +23,37 @@ namespace NaoFramework {
             void * dllModule = dlopen(moduleFilename.c_str(), RTLD_GLOBAL | RTLD_NOW);
             if ( dllModule == nullptr ) throw std::runtime_error(dlerror());
 
-            // This we don't need to save..
+            // Module maker
             dynamicModuleFactory* factory = (dynamicModuleFactory*) dlsym(dllModule, FACTORY_NAME);
-            if ( factory == nullptr ) throw std::runtime_error(dlerror());
+            if ( factory == nullptr ) {
+                dlclose(dllModule);    
+                throw std::runtime_error(dlerror());
+            }
             // We need to obtain this function now because we can't simply
             // create an instance we might not be able to delete!
-            dynamicModuleDump* moduleDeleter = (dynamicModuleDump*) dlsym(dllModule, DUMP_NAME );
-            if ( moduleDeleter == nullptr ) throw std::runtime_error(dlerror());
+            dynamicModuleDump* moduleDeleter = (dynamicModuleDump*) dlsym(dllModule, DUMP_NAME);
+            if ( moduleDeleter == nullptr ) {
+                dlclose(dllModule);    
+                throw std::runtime_error(dlerror());
+            }
             // This is managed by the DynamicModule and it is actually deleted within
-            // the dll itself, so it's ok that we don't wrap it up because we don't want
-            // to actually delete it.
-            DynamicModuleInterface* module = factory(comm, others);
-            // One day we'll use make_unique...
-            return std::unique_ptr<DynamicModule>( new DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter));
+            // the dll, so it's ok that we don't wrap the pointer up because we don't want
+            // to actually delete it ourselves.
+            try {
+                DynamicModuleInterface* module = factory(comm, others);
+                // One day we'll use make_unique...
+                return std::unique_ptr<DynamicModule>( 
+                            new DynamicModule("Dynamic" + module->getName(), dllModule, module, moduleDeleter) );
+            } catch ( std::exception e ) {
+                dlclose(dllModule);
+                throw e;
+            }
         }
 
         #undef FACTORY_NAME 
         #undef DUMP_NAME    
         #undef TO_STRING
+        #undef TO_STRING_2
 
         DynamicModule::DynamicModule(std::string name, void * dllModule, DynamicModuleInterface * module, dynamicModuleDump * deleter) :
                                                                 DynamicModuleInterface(name),
@@ -58,6 +73,8 @@ namespace NaoFramework {
         }
 
         const DynamicModule & DynamicModule::operator=(DynamicModule&& other) {
+            DynamicModuleInterface::operator=(std::move(other));
+
             if (module_)    moduleDeleter_(&module_);
             if (dllModule_) dlclose(dllModule_);
 

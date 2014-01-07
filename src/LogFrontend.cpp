@@ -59,9 +59,9 @@ namespace NaoFramework {
 
             // We can avoid removing our sink because we're going to log during
             // the whole application anyway.
-            makeSink("Log");
+            makeSink("Log", "");
             #ifdef NAO_DEBUG
-            makeSink("Global");
+            makeSink("Global", "");
             availableSinks["Global"]->reset_filter();
             #endif
         }
@@ -98,11 +98,11 @@ namespace NaoFramework {
 
                 logging::core::get()->add_sink(sink);
 
-                log("Log", "Set sink for client: " + client );
+                log("Log", "", "Set sink for client: " + client );
                 #if NAO_DEBUG
-                log("Log", "Auto Flushing is true", MessagePriority::Debug);
+                log("Log", "", "Auto Flushing is true", MessagePriority::Debug);
                 #endif
-                availableSinks[client] = sink;
+                availableSinks[subfolderName+client] = sink;
                 result = true;
             }
 
@@ -110,13 +110,14 @@ namespace NaoFramework {
             return result; // ONLY EXIT POINT HERE! UNLOCK MUTEX!
         }
 
-        void removeSink(const std::string & client) {
+        void removeSink(const std::string & client, const std::string & subfolder) {
+            std::string clientName = folderize(subfolder) + client;
             availableSinksMutex.lock();
-            auto it = availableSinks.find(client);
+            auto it = availableSinks.find(clientName);
 
             if ( it != end(availableSinks) ) {
                 auto sink = it->second;
-                log("Log", "Removing sink for client: " + client );
+                log("Log", "", "Removing sink for client: " + client );
                 sink->flush();
                 logging::core::get()->remove_sink(sink);
 
@@ -126,12 +127,13 @@ namespace NaoFramework {
             return; // ONLY EXIT POINT HERE! UNLOCK MUTEX!
         }
 
-        void log(const std::string & client, const std::string & message, MessagePriority priority) {
+        void log(const std::string & client, const std::string & subfolder, const std::string & message, MessagePriority priority) {
             using namespace logging::trivial;
+            std::string clientName = folderize(subfolder) + client;
             // Maybe this can improved by giving the loggers to the Modules directly.
             // Profiling first, though.
             src::severity_logger< severity_level > slg;
-            slg.add_attribute("Client", attrs::constant< std::string >(client));
+            slg.add_attribute("Client", attrs::constant< std::string >(clientName));
             BOOST_LOG_SEV(slg, static_cast<severity_level>(priority)) << message;
         }
     }

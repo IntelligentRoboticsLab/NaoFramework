@@ -2,18 +2,13 @@
 
 namespace NaoFramework {
     namespace Modules {
-        ModuleInterface::ModuleInterface(std::string moduleName) : name_(moduleName) {
-            Log::makeSink(name_, "Modules");
-        }
+        ModuleInterface::ModuleInterface(std::string moduleName) : Loggable(moduleName, "Modules"), name_(moduleName) {}
+        ModuleInterface::~ModuleInterface() {}
 
-        ModuleInterface::~ModuleInterface() {
-            Log::removeSink(name_); 
-        }
-
-        ModuleInterface::ModuleInterface(ModuleInterface&& other) : name_(std::move(other.name_)) {}
+        ModuleInterface::ModuleInterface(ModuleInterface&& other) : Loggable(std::move(other)),  name_(std::move(other.name_)) {}
 
         const ModuleInterface & ModuleInterface::operator=(ModuleInterface&& other) {
-            Log::removeSink(name_); 
+            Loggable::operator=(std::move(other));
 
             name_ = std::move(other.name_);
 
@@ -22,10 +17,6 @@ namespace NaoFramework {
 
         const std::string & ModuleInterface::getName() const {
             return name_;
-        }
-
-        void ModuleInterface::log(const std::string & text, Log::MessagePriority p) {
-            Log::log(name_, text, p);
         }
     } // Modules
 } //NaoFramework

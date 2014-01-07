@@ -8,10 +8,23 @@
 
 namespace NaoFramework {
     namespace Comm {
+        /**
+         * @brief This class provides a temporary wrapper around Blackboard for limited access.
+         *
+         * This adapter is provided as a means to shield/block modules registering requests to 
+         * Blackboards of other threads from using local functions. All functions are simply 
+         * redirects to their equivalent functions within Blackboard.
+         */
         class ExternalBlackboardAdapter {
             public:
+                /**
+                 * @brief Basic constructor.
+                 *
+                 * @param b A reference to a Blackboard instance.
+                 */
                 ExternalBlackboardAdapter(Blackboard & b) : blackboard_(b) {}
 
+                /// \sa Blackboard::registerGlobalRequire()
                 template <class T>
                 RequireFunction<T> registerGlobalRequire    (const std::string & s, RegistrationError * e = nullptr) {
                     return blackboard_.registerGlobalRequire<T>(s,e);
