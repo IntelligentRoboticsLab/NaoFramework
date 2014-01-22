@@ -37,6 +37,19 @@ ing an extremely clean workspace as the runnable project would only need
 to include the dll's of the modules, the executable of the framework and
 whatever code you are working with, and not ALL the modules's code.
 
+###Build Instructions###
+The project can be currently builded with CMake. To do that, go in the main
+folder of the project. From there issue the following commands:
+
+    mkdir build
+    cd build
+    cmake ..
+    make
+    
+This will build the framework. If CMake fails make sure you have all required
+libraries installed: at least Boost 1.54, and another couple of libraries
+you should have anyway.
+
 Currently there are two prototype modules in the repo, in the folder
 moduleExamples. Each can be compiled using the script in the folder, like
 so:
