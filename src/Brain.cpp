@@ -56,10 +56,10 @@ namespace NaoFramework {
             std::cout << "Wave '" << inputs[1];
             if ( !waveExists(inputs[1]) ) {
                 makeWave(inputs[1]);
-                std::cout << "' created.\n"; 
+                std::cout << "' created.\n";
             }
             else std::cout << "' exists already.\n";
-            
+
             return 0;
         }
 
@@ -70,7 +70,7 @@ namespace NaoFramework {
             }
             // Wave check
             if ( !waveExists(inputs[1]) ) {
-                std::cout << "Error, wave '" << inputs[1] << "' does not exist.\n"; 
+                std::cout << "Error, wave '" << inputs[1] << "' does not exist.\n";
                 return 1;
             }
 
